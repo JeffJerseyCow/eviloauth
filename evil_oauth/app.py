@@ -3,7 +3,6 @@ import argparse
 import random
 import string
 from flask import Flask, request, jsonify, render_template
-from . import __version__
 
 app = Flask('oauth2-sec-test')
 
@@ -12,6 +11,7 @@ chars = string.ascii_letters + string.digits
 client_id = '77248f8f-96e8-436e-9dfa-8f8ed6e32add'
 uri_string = 'JJ9jjdaWj7'
 redirect_uri = f'https://127.0.0.1:5000/{uri_string}'
+__version__ = '0.0.1'
 
 @app.route('/')
 def home():
