@@ -16,6 +16,7 @@ function initializeRedirect() {
                 console.error('Error:', error);
             }
         }
-	window.location = 'https://127.0.0.1:5000/'
+
+	window.location = '/';
     });
 }

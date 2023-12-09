@@ -1,64 +1,49 @@
-import requests
 import argparse
-import random
-import string
-from flask import Flask, request, jsonify, render_template
+import logging
+from . import flask_app, __version__, redirect_uri_endpoint
 
-app = Flask('oauth2-sec-test')
+def set_log_level(verbose):
+	log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
-# Generate 10 alphanumeric for Response URI
-chars = string.ascii_letters + string.digits
-client_id = '77248f8f-96e8-436e-9dfa-8f8ed6e32add'
-uri_string = 'JJ9jjdaWj7'
-redirect_uri = f'https://127.0.0.1:5000/{uri_string}'
-__version__ = '0.0.1'
-
-@app.route('/')
-def home():
-	return render_template('index.html', client_id=client_id, redirect_uri=redirect_uri)
-
-@app.route('/callback', methods=['POST'])
-def callback():
-    data = request.json
-    token = data.get('access_token')
-    print("Received token:", token)
-    return jsonify({"status": "success", "message": "Token received"})
-
-@app.route(f'/{uri_string}', methods=['GET'])
-def redirect():
-	return render_template('redirect.html')	
+	if verbose == 0:
+		logging.basicConfig(level=logging.WARNING, format=log_format)
+	elif verbose == 1:
+		logging.basicConfig(level=logging.INFO, format=log_format)
+	elif verbose >= 2:
+		logging.basicConfig(level=logging.DEBUG, format=log_format)
 
 def main():
-	print('====================')
-	print(f'evil-oauth {__version__}')
-	print('====================')
-
 	parser = argparse.ArgumentParser(prog='oauth2-sec-test')
 	parser.add_argument('-c', '--client-id', required=True, help='OAuth2.0 Client ID')
 	parser.add_argument('-r', '--response-type', default='token', 
-		help='OAuth 2.0 Response Type [code (AuthZ Flow) | token (Implicit Flow)]')
+		help='OAuth 2.0 Response Type [code (AuthZ "Code" Flow) | token (Implicit "Token" Flow)]')
 	parser.add_argument('-s', '--scope', required=True, help='OAuth2.0 Scopes')
-	parser.add_argument('-u', '--redirect-uri', default=uri_string, help='OAuth2.0 Response URI')
 	parser.add_argument('-e', '--endpoint', required=True, help='OAuth2.0 Target URI Endpoint')
+	parser.add_argument('--redirect_server', default='127.0.0.1:5000', help='OAuth2.0 Target URI Endpoint')
+	parser.add_argument('-v', '--verbose', action='count', default=0, help='Increase verbosity level')
 	args = parser.parse_args()
 
-	authz_uri = ''.join([args.endpoint, '?', 
-		'client_id=', args.client_id,
-		'&'
-		'scope=', args.scope,
-		'&',
-		'response_type=', args.response_type,
-		'&',
-		'redirect_uri=', redirect_uri])
+	set_log_level(args.verbose)
+	logging.info(f'evil-oauth {__version__}')
 
-	print(f'Client ID: {args.client_id}')
-	print(f'Response Type: {args.response_type}')
-	print(f'Scope: {args.scope}')
-	print(f'Endpoint: {args.endpoint}')
-	print(f'Authz URI: {authz_uri}')
-	print(f'Callback on {redirect_uri}')
-	client_id = args.client_id
-	app.run(ssl_context=('adhoc'), debug=True)
+	redirect_uri = f'https://{args.redirect_server}/{redirect_uri_endpoint}'
+
+	logging.info(f'Endpoint: {args.endpoint}')
+	logging.info(f'Client ID: {args.client_id}')
+	logging.info(f'Scope: {args.scope}')
+	logging.info(f'Response Type: {args.response_type}')
+	logging.info(f'Redirect URI: {redirect_uri}')
+	
+	# Storare Arguments for routes.py
+	flask_app.config['ENDPOINT'] = args.endpoint
+	flask_app.config['CLIENT_ID'] = args.client_id
+	flask_app.config['SCOPE'] = args.scope
+	flask_app.config['RESPONSE_TYPE'] = args.response_type
+	flask_app.config['REDIRECT_URI'] = redirect_uri
+	
+	# Import Routes
+	from . import routes
+	flask_app.run(ssl_context=('adhoc'), debug=True)
 
 if __name__ == '__main__':
 	main()

@@ -9,9 +9,12 @@
 
     <script src="{{ url_for('static', filename='app.js') }}"></script>
     <script type="text/javascript">
+	const endpoint = "{{ endpoint }}"
         const clientId = "{{ client_id }}";
+        const scope = "{{ scope }}";
+        const responseType = "{{ response_type }}";
         const redirectUri = "{{ redirect_uri }}";
-        initializeLogin(clientId, redirectUri);
+        initializeLogin(endpoint, clientId, scope, responseType, redirectUri);
     </script>
 </body>
 </html>
