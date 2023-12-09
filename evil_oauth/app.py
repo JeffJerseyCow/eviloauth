@@ -3,6 +3,7 @@ import argparse
 import random
 import string
 from flask import Flask, request, jsonify, render_template
+from . import __version__
 
 app = Flask('oauth2-sec-test')
 
@@ -28,6 +29,10 @@ def redirect():
 	return render_template('redirect.html')	
 
 def main():
+	print('====================')
+	print(f'evil-oauth {__version__}')
+	print('====================')
+
 	parser = argparse.ArgumentParser(prog='oauth2-sec-test')
 	parser.add_argument('-c', '--client-id', required=True, help='OAuth2.0 Client ID')
 	parser.add_argument('-r', '--response-type', default='token', 

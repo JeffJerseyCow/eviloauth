@@ -6,3 +6,7 @@ Projects like evil-nginx are fantastic at exploiting the OIDC specific OAuth2.0 
 The last ditch effort of the would-be hacker is to understand and exploit OAuth2.0 authorization code flow, particularly the OAuth2.0 implicit flow in an effort to steal Bearer tokens. The implicit flow is different to the authorization code flow as it returns the access_token directly, not an authorization_code.
 
 We effectively pretend that we're a Single Page Application (SPA), or mobile application and force the target user/browser into an implicit OAuth2.0 flow. Then trick them into granting us/the attacker authorization to read, or perfor, sensitive information/actions.
+
+## Examples
+```shell
+python3 -m evil_oauth.app -c '77248f8f-96e8-436e-9dfa-8f8ed6e32add'  -s Mail.Read -e https://login.microsoftonline.com/common/oauth2/v2.0/authorize```
