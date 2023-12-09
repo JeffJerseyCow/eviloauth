@@ -33,6 +33,8 @@ def main():
 	logging.info(f'Scope: {args.scope}')
 	logging.info(f'Response Type: {args.response_type}')
 	logging.info(f'Redirect URI: {redirect_uri}')
+	logging.info(f'{args.endpoint}?client_id={args.client_id}&scope={args.scope}&'
+		     f'response_type={args.response_type}&redirect_uri={redirect_uri}')
 	
 	# Storare Arguments for routes.py
 	flask_app.config['ENDPOINT'] = args.endpoint
