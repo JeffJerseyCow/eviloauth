@@ -1,5 +1,6 @@
 import argparse
 import logging
+import threading
 from . import flask_app, __version__, redirect_uri_endpoint
 
 def set_log_level(verbose):
@@ -42,10 +43,67 @@ def main():
 	flask_app.config['SCOPE'] = args.scope
 	flask_app.config['RESPONSE_TYPE'] = args.response_type
 	flask_app.config['REDIRECT_URI'] = redirect_uri
-	
-	# Import Routes
-	from . import routes
-	flask_app.run(ssl_context=('adhoc'), debug=True)
+
+# Import Routes
+from . import routes
+
+def run_flask_app():
+	flask_app.run(ssl_context='adhoc', debug=True, use_reloader=False)
+
+def show_tokens(token_id=None):
+    try:
+        with open('tokens.txt', 'r') as file:
+            tokens = file.readlines()
+
+        if not tokens:
+            print("No tokens found.")
+            return
+
+        if token_id is not None:
+            # Display the full token for the given ID
+            for line in tokens:
+                parts = line.strip().split(',')
+                if len(parts) == 2 and parts[0] == str(token_id):
+                    _, full_token = parts
+                    print(f"Full token for ID {token_id}: {full_token}")
+                    return
+            print(f"No token found with ID {token_id}")
+        else:
+            # Print table header
+            print(f"{'ID':<5} | {'Token':<10} | {'Date':<10} | {'Time':<10}")
+            print("-" * 50)  # Adjust the length based on your table width
+
+            # Print each token in brief
+            for line in tokens:
+                parts = line.strip().split(',')
+                if len(parts) == 2:
+                    id, token = parts
+                    token_preview = token[:7] + "..."
+                    print(f"{id:<5} | {token_preview:<10}")
+                else:
+                    print("Invalid line format:", line)
+
+    except FileNotFoundError:
+        print("No tokens found.")
+
+def command_loop():
+    while True:
+        cmd = input("Enter command: ")
+        if cmd.startswith("tokens"):
+            parts = cmd.split()
+            if len(parts) == 2 and parts[1].isdigit():
+                show_tokens(token_id=parts[1])
+            else:
+                show_tokens()
+        elif cmd == "exit":
+            break
+        else:
+            print("Unknown command.")
+
+flask_thread = threading.Thread(target=flask_app.run)
+flask_thread.start()
+
+command_loop()
 
 if __name__ == '__main__':
 	main()

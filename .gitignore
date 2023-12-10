@@ -1,3 +1,5 @@
 # Files
 *.swp
+tokens.txt
 # Folders
+__pycache__
