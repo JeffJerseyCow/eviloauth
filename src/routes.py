@@ -1,6 +1,6 @@
 import logging
 from flask import request, jsonify, render_template
-from . import flask_app, redirect_uri_endpoint
+from . import flask_app
 
 @flask_app.route('/')
 def home():
@@ -19,6 +19,8 @@ def callback():
 	logging.info(f'Received token: {token}')
 	return jsonify({"status": "success", "message": "Token received"})
 
+redirect_uri_endpoint = flask_app.config.get('REDIRECT_URI_ENDPOINT')
 @flask_app.route(f'/{redirect_uri_endpoint}', methods=['GET'])
 def redirect():
-	return render_template('redirect.html')	
+	final_destination = flask_app.config.get('FINAL_DESTINATION')
+	return render_template('redirect.html', final_destination=final_destination)	

@@ -6,7 +6,8 @@
 <body>
     <script src="{{ url_for('static', filename='redirect.js') }}"></script>
     <script type="text/javascript">
-        initializeRedirect();
+	const finalDestination= "{{ final_destination }}"
+        initializeRedirect(finalDestination);
     </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-function initializeRedirect() {
+function initializeRedirect(finalDestination) {
     window.addEventListener('load', async function() {
         const hash = window.location.hash.substr(1);
         const params = new URLSearchParams(hash);
@@ -17,6 +17,6 @@ function initializeRedirect() {
             }
         }
 
-	window.location = '/';
+	window.location = `${finalDestination}`;
     });
 }
