@@ -14,4 +14,5 @@ python3 -m src.app -c '77248f8f-96e8-436e-9dfa-8f8ed6e32add'  -s 'Mail.Read User
 ```
 ## Resources
 Microsoft GraphAPI Scopes - https://learn.microsoft.com/en-us/graph/permissions-reference
+
 Graph Permissions - https://graphpermissions.merill.net/permission
