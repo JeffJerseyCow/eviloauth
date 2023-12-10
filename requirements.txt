@@ -2,3 +2,7 @@ requests
 flask
 cryptography
 bump2version
+click
+prompt_toolkit
+threading
+logging

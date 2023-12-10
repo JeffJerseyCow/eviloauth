@@ -1,6 +1,9 @@
 import argparse
 import logging
 import threading
+import click
+from prompt_toolkit import prompt
+from prompt_toolkit.completion import WordCompleter
 from . import flask_app, __version__, redirect_uri_endpoint
 
 def set_log_level(verbose):
@@ -50,6 +53,16 @@ from . import routes
 def run_flask_app():
 	flask_app.run(ssl_context='adhoc', debug=True, use_reloader=False)
 
+@click.group()
+def cli():
+    pass
+
+@cli.command()
+@click.argument('token_id', required=False)
+def tokens(token_id):
+    """Show tokens. If TOKEN_ID is provided, show the full token for that ID."""
+    show_tokens(token_id)
+
 def show_tokens(token_id=None):
     try:
         with open('tokens.txt', 'r') as file:
@@ -87,18 +100,22 @@ def show_tokens(token_id=None):
         print("No tokens found.")
 
 def command_loop():
+    token_completer = WordCompleter(['tokens', 'exit'], ignore_case=True)
     while True:
-        cmd = input("Enter command: ")
-        if cmd.startswith("tokens"):
-            parts = cmd.split()
-            if len(parts) == 2 and parts[1].isdigit():
-                show_tokens(token_id=parts[1])
+        try:
+            cmd = prompt("Enter command: ", completer=token_completer)
+            if cmd.startswith("tokens"):
+                parts = cmd.split()
+                if len(parts) == 2 and parts[1].isdigit():
+                    cli.main(args=['tokens', parts[1]], standalone_mode=False)
+                else:
+                    cli.main(args=['tokens'], standalone_mode=False)
+            elif cmd == "exit":
+                break
             else:
-                show_tokens()
-        elif cmd == "exit":
-            break
-        else:
-            print("Unknown command.")
+                print("Unknown command.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
 flask_thread = threading.Thread(target=flask_app.run)
 flask_thread.start()
