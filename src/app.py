@@ -4,7 +4,19 @@ import threading
 import click
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.styles import Style
+from prompt_toolkit.history import InMemoryHistory
 from . import flask_app, __version__, redirect_uri_endpoint
+
+custom_style = Style.from_dict({
+    'prompt': 'ansigreen',
+})
+
+global_endpoint = None
+global_client_id = None
+global_scope = None
+global_response_type = None
+global_redirect_uri = None
 
 def set_log_level(verbose):
 	log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -17,36 +29,33 @@ def set_log_level(verbose):
 		logging.basicConfig(level=logging.DEBUG, format=log_format)
 
 def main():
-	parser = argparse.ArgumentParser(prog='oauth2-sec-test')
-	parser.add_argument('-c', '--client-id', required=True, help='OAuth2.0 Client ID')
-	parser.add_argument('-r', '--response-type', default='token', 
+    global global_endpoint, global_client_id, global_scope, global_response_type, global_redirect_uri
+parser = argparse.ArgumentParser(prog='oauth2-sec-test')
+parser.add_argument('-c', '--client-id', required=True, help='OAuth2.0 Client ID')
+parser.add_argument('-r', '--response-type', default='token', 
 		help='OAuth 2.0 Response Type [code (AuthZ "Code" Flow) | token (Implicit "Token" Flow)]')
-	parser.add_argument('-s', '--scope', required=True, help='OAuth2.0 Scopes')
-	parser.add_argument('-e', '--endpoint', required=True, help='OAuth2.0 Target URI Endpoint')
-	parser.add_argument('--redirect_server', default='127.0.0.1:5000', help='OAuth2.0 Target URI Endpoint')
-	parser.add_argument('-v', '--verbose', action='count', default=0, help='Increase verbosity level')
-	args = parser.parse_args()
+parser.add_argument('-s', '--scope', required=True, help='OAuth2.0 Scopes')
+parser.add_argument('-e', '--endpoint', required=True, help='OAuth2.0 Target URI Endpoint')
+parser.add_argument('--redirect_server', default='127.0.0.1:5000', help='OAuth2.0 Target URI Endpoint')
+parser.add_argument('-v', '--verbose', action='count', default=0, help='Increase verbosity level')
+args = parser.parse_args()
 
-	set_log_level(args.verbose)
-	logging.info(f'evil-oauth {__version__}')
+set_log_level(args.verbose)
+logging.info(f'evil-oauth {__version__}')
 
-	redirect_uri = f'https://{args.redirect_server}/{redirect_uri_endpoint}'
+global_endpoint = args.endpoint
+global_client_id = args.client_id
+global_scope = args.scope
+global_response_type = args.response_type
+global_redirect_uri = f'https://{args.redirect_server}/{redirect_uri_endpoint}'
 
-	logging.info(f'Endpoint: {args.endpoint}')
-	logging.info(f'Client ID: {args.client_id}')
-	logging.info(f'Scope: {args.scope}')
-	logging.info(f'Response Type: {args.response_type}')
-	logging.info(f'Redirect URI: {redirect_uri}')
-	logging.info(f'{args.endpoint}?client_id={args.client_id}&scope={args.scope}&'
-		     f'response_type={args.response_type}&redirect_uri={redirect_uri}')
-	
 	# Storare Arguments for routes.py
-	flask_app.config['ENDPOINT'] = args.endpoint
-	flask_app.config['CLIENT_ID'] = args.client_id
-	flask_app.config['SCOPE'] = args.scope
-	flask_app.config['RESPONSE_TYPE'] = args.response_type
-	flask_app.config['REDIRECT_URI'] = redirect_uri
-
+flask_app.config['ENDPOINT'] = args.endpoint
+flask_app.config['CLIENT_ID'] = args.client_id
+flask_app.config['SCOPE'] = args.scope
+flask_app.config['RESPONSE_TYPE'] = args.response_type
+flask_app.config['REDIRECT_URI'] = global_redirect_uri
+     
 # Import Routes
 from . import routes
 
@@ -99,28 +108,35 @@ def show_tokens(token_id=None):
     except FileNotFoundError:
         print("No tokens found.")
 
+@cli.command()
+def url():
+    """Print and log the constructed URL."""
+    if all([global_endpoint, global_client_id, global_scope, global_response_type, global_redirect_uri]):
+        constructed_url = (f'{global_endpoint}?client_id={global_client_id}&scope={global_scope}&'
+                           f'response_type={global_response_type}&redirect_uri={global_redirect_uri}')
+        print(constructed_url)
+    else:
+        print("URL components are not fully set.")
+
 def command_loop():
-    token_completer = WordCompleter(['tokens', 'exit'], ignore_case=True)
+    history = InMemoryHistory()
+    token_completer = WordCompleter(['tokens', 'url', 'exit'], ignore_case=True)
     while True:
         try:
-            cmd = prompt("Enter command: ", completer=token_completer)
-            if cmd.startswith("tokens"):
-                parts = cmd.split()
-                if len(parts) == 2 and parts[1].isdigit():
-                    cli.main(args=['tokens', parts[1]], standalone_mode=False)
+            cmd = prompt("Enter command: ", completer=token_completer, style=custom_style, history=history)
+            parts = cmd.split()
+            if parts:
+                if parts[0] in ['tokens', 'url']:
+                    cli.main(args=parts, standalone_mode=False)
+                elif parts[0] == "exit":
+                    break
                 else:
-                    cli.main(args=['tokens'], standalone_mode=False)
-            elif cmd == "exit":
-                break
-            else:
-                print("Unknown command.")
+                    print("Unknown command.")
         except Exception as e:
             print(f"An error occurred: {e}")
 
-flask_thread = threading.Thread(target=flask_app.run)
-flask_thread.start()
-
-command_loop()
-
 if __name__ == '__main__':
-	main()
+    main()
+    flask_thread = threading.Thread(target=run_flask_app)
+    flask_thread.start()
+    command_loop()
