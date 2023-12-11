@@ -16,19 +16,6 @@ def home():
 	return render_template('index.html', endpoint=endpoint, client_id=client_id, scope=scope,
 		response_type=response_type, redirect_uri=redirect_uri)
 
-def decode_access_token(token):
-    try:
-        _, payload, _ = token.split('.')
-        payload_decoded = base64.urlsafe_b64decode(add_padding(payload)).decode('utf-8')
-        return json.loads(payload_decoded)
-    except Exception as e:
-        logging.error(f"Error decoding JWT: {e}", exc_info=True)
-        raise
-
-def add_padding(token_part):
-    """Adds the required padding to the base64 encoded string."""
-    return token_part + '=' * (4 - len(token_part) % 4)
-
 @flask_app.route('/callback', methods=['POST'])
 def callback():
     data = request.json
