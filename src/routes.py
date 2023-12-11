@@ -1,9 +1,5 @@
-import logging
 from flask import request, jsonify, render_template
-from datetime import date, datetime
-import base64
-import json
-from . import flask_app, cache
+from . import flask_app
 from .token_utilities import process_token
 
 @flask_app.route('/')
