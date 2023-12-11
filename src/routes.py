@@ -29,9 +29,6 @@ def add_padding(token_part):
     """Adds the required padding to the base64 encoded string."""
     return token_part + '=' * (4 - len(token_part) % 4)
 
-def get_cache(cache_key):
-    print(cache.get(cache_key))
-
 @flask_app.route('/callback', methods=['POST'])
 def callback():
     data = request.json
