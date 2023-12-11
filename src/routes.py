@@ -1,6 +1,6 @@
-import logging
 from flask import request, jsonify, render_template
 from . import flask_app
+from .token_utilities import process_token
 
 @flask_app.route('/')
 def home():
@@ -14,10 +14,17 @@ def home():
 
 @flask_app.route('/callback', methods=['POST'])
 def callback():
-	data = request.json
-	token = data.get('access_token')
-	logging.info(f'Received token: {token}')
-	return jsonify({"status": "success", "message": "Token received"})
+    data = request.json
+    token = data.get('access_token')
+
+    if token:
+        try:
+            cache_data = process_token(token)
+            return jsonify({"status": "success", "message": "Token received", "data": cache_data})
+        except ValueError as e:
+            return jsonify({"status": "error", "message": str(e)}), 400
+    else:
+        return jsonify({"status": "error", "message": "No token provided"}), 400
 
 redirect_uri_endpoint = flask_app.config.get('REDIRECT_URI_ENDPOINT')
 @flask_app.route(f'/{redirect_uri_endpoint}', methods=['GET'])

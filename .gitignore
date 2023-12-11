@@ -1,3 +1,6 @@
 # Files
 *.swp
+*.db
 # Folders
+__pycache__
+tmp
