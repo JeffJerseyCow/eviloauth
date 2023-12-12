@@ -18,6 +18,8 @@ def callback():
     data = request.json
     token = data.get('access_token')
 
+    # First try to decode
+    # If a JWT - determine which IdP
     if token:
         try:
             cache_data = process_token(token)
@@ -25,6 +27,7 @@ def callback():
         except ValueError as e:
             logging.error('Cannot process_token %s', e)
             return jsonify({"status": "error", "message": str(e)}), 400
+    # Unknown access_token, store as an opaque object (manually enter credentials, e.g. email)
     else:
         logging.error('Callback didn\' receive access_token')
         return jsonify({"status": "error", "message": "No token provided"}), 400
