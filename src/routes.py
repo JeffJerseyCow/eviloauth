@@ -1,7 +1,7 @@
 import logging
 from flask import request, jsonify, render_template
 from . import flask_app
-from .token_utilities import process_token
+from .token_utilities import process_token, get_cache, opaque_token_count
 
 @flask_app.route('/')
 def home():
@@ -18,18 +18,18 @@ def callback():
     data = request.json
     token = data.get('access_token')
 
-    # First try to decode
-    # If a JWT - determine which IdP
     if token:
         try:
             cache_data = process_token(token)
+            print("Processed Token Data:", cache_data)
             return jsonify({"status": "success", "message": "Token received", "data": cache_data})
         except ValueError as e:
             logging.error('Cannot process_token %s', e)
+            opaque_token = get_cache(f'opaque_{opaque_token_count}')
+            print("Opaque Token:", opaque_token)
             return jsonify({"status": "error", "message": str(e)}), 400
-    # Unknown access_token, store as an opaque object (manually enter credentials, e.g. email)
     else:
-        logging.error('Callback didn\' receive access_token')
+        logging.error('Callback didn\'t receive access_token')
         return jsonify({"status": "error", "message": "No token provided"}), 400
 
 redirect_uri_endpoint = flask_app.config.get('REDIRECT_URI_ENDPOINT')

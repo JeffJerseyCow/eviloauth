@@ -1,6 +1,6 @@
 import argparse
 import logging
-from . import flask_app, __version__ 
+from . import flask_app, __version__
 
 def set_log_level(verbose):
 	log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -48,7 +48,7 @@ def main():
 	flask_app.config['REDIRECT_URI'] = redirect_uri
 	flask_app.config['FINAL_DESTINATION'] = args.final_destination
 	flask_app.config['REDIRECT_URI_ENDPOINT'] = args.redirect_uri_endpoint
-	
+
 	# Import Routes
 	from . import routes
 	flask_app.run(ssl_context=('adhoc'), debug=True)
