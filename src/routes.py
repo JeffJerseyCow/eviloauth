@@ -1,3 +1,4 @@
+import logging
 from flask import request, jsonify, render_template
 from . import flask_app
 from .token_utilities import process_token
@@ -22,8 +23,10 @@ def callback():
             cache_data = process_token(token)
             return jsonify({"status": "success", "message": "Token received", "data": cache_data})
         except ValueError as e:
+            logging.error('Cannot process_token %s', e)
             return jsonify({"status": "error", "message": str(e)}), 400
     else:
+        logging.error('Callback didn\' receive access_token')
         return jsonify({"status": "error", "message": "No token provided"}), 400
 
 redirect_uri_endpoint = flask_app.config.get('REDIRECT_URI_ENDPOINT')
