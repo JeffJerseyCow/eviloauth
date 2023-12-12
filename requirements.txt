@@ -3,3 +3,4 @@ flask
 cryptography
 bump2version
 pytest
+diskcache
