@@ -4,6 +4,3 @@ cryptography
 bump2version
 pytest
 diskcache
-base64
-datetime
-json
