@@ -1,9 +1,7 @@
 import logging
 from flask import request, jsonify, render_template
-from . import flask_app
+from . import flask_app, OPAQUE_TOKEN_COUNT_KEY
 from .token_utilities import process_token, get_cache
-
-OPAQUE_TOKEN_COUNT_KEY = "opaque_token_count"
 
 @flask_app.route('/')
 def home():
@@ -29,7 +27,7 @@ def callback():
             logging.error('Cannot process_token %s', e)
             opaque_token_count = get_cache(OPAQUE_TOKEN_COUNT_KEY)
             opaque_token = get_cache(f'opaque_{opaque_token_count}')
-            logging.info("Erroneous Token: %s", opaque_token)
+            logging.info("Opaque Token: %s", opaque_token)
             return jsonify({"status": "error", "message": str(e)}), 400
     else:
         logging.error('Callback didn\'t receive access_token')
