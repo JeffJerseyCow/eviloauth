@@ -1,6 +1,6 @@
 import logging
 from flask import request, jsonify, render_template
-from . import flask_app, OPAQUE_TOKEN_COUNT_KEY
+from . import flask_app
 from .token_utilities import process_token, get_cache
 
 @flask_app.route('/')
@@ -21,17 +21,17 @@ def callback():
     if token:
         try:
             cache_data = process_token(token)
-            logging.info("Processed Token Data: %s", cache_data)
-            return jsonify({"status": "success", "message": "Token received", "data": cache_data})
+            logging.info('Processed Token Data: %s', cache_data)
+            return jsonify({'status': 'success', 'message': 'Token received', 'data': cache_data})
         except ValueError as e:
             logging.error('Cannot process_token %s', e)
-            opaque_token_count = get_cache(OPAQUE_TOKEN_COUNT_KEY)
-            opaque_token = get_cache(f'opaque_{opaque_token_count}')
-            logging.info("Opaque Token: %s", opaque_token)
-            return jsonify({"status": "error", "message": str(e)}), 400
+            opaque_token_count = get_cache("opaque_token_count")
+            opaque_token_data = get_cache(f'opaque_{opaque_token_count}')
+            logging.info('Opaque Token Data: %s', opaque_token_data)
+            return jsonify({'status': 'error', 'message': str(e)}), 400
     else:
         logging.error('Callback didn\'t receive access_token')
-        return jsonify({"status": "error", "message": "No token provided"}), 400
+        return jsonify({'status': 'error', 'message': 'No token provided'}), 400
 
 redirect_uri_endpoint = flask_app.config.get('REDIRECT_URI_ENDPOINT')
 @flask_app.route(f'/{redirect_uri_endpoint}', methods=['GET'])
