@@ -1,6 +1,8 @@
 import argparse
 import logging
-from . import flask_app, __version__
+from . import flask_app, __version__, MODULES
+
+print(MODULES)
 
 def set_log_level(verbose):
 	log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
