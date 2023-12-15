@@ -4,3 +4,4 @@ cryptography
 bump2version
 pytest
 diskcache
+prompt-toolkit
