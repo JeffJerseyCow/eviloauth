@@ -2,10 +2,20 @@ import sys
 import logging
 import argparse
 import threading
+import importlib
 from werkzeug.serving import make_server
-from . import flask_app, __version__, MODULES
+from . import flask_app, __version__, MODULES, cache
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import NestedCompleter
+
+def load_modules():
+    module_dict = {}
+
+    for module in [f'evil-oauth.module.{k}.{i}' for (k, v) in MODULES['module'].items() for i in v]:
+        module_dict[module] = importlib.import_module(module)
+        module_dict[module].__load__()
+
+    return module_dict
 
 def set_log_level(verbose):
 	log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -25,7 +35,7 @@ def shutdown(flask_server):
 def build_parser():
     parser = argparse.ArgumentParser(prog=f'evil-oauth {__version__}')
     parser.add_argument('-c', '--client-id', required=True, help='OAuth2.0 Client ID')
-    parser.add_argument('-r', '--response-type', default='token', 
+    parser.add_argument('-r', '--response-type', default='token',
         help='OAuth 2.0 Response Type [code (AuthZ "Code" Flow) | token (Implicit "Token" Flow)]')
     parser.add_argument('-s', '--scope', required=True, help='OAuth2.0 Scopes')
     parser.add_argument('-e', '--endpoint', required=True, help='OAuth2.0 Target URI Endpoint')
@@ -72,15 +82,33 @@ def main():
     completer = NestedCompleter.from_nested_dict(MODULES)
     session = PromptSession('evil-oauth# ', completer=completer)
 
+    # Load modules
+    module_dict = load_modules()
+
     # Main process loop
     try:
 
         while True:
             commands = session.prompt()
             cmd, sub, arg = (commands.lower().split(' ') + [None, None, None])[:3]
-            if cmd == 'exit':
-                shutdown(flask_server)
 
+            try:
+
+                if cmd == 'exit':
+                    shutdown(flask_server)
+
+                elif cmd == 'module':
+                    mod = module_dict[f'evil-oauth.{cmd}.{sub}.{arg}']
+                    mod.__run__(cache, 0)
+
+                elif cmd == 'tokens':
+                    print([v for v in cache])
+
+            # Inner except
+            except KeyError as e:
+                logging.warning('Unknown module %s' % e)
+
+    # Outer except
     except KeyboardInterrupt:
         shutdown(flask_server)
 
