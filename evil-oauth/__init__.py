@@ -1,7 +1,7 @@
 import tempfile
 from flask import Flask
 from diskcache import Cache
-from .modules import ATTACK_MODULES
+from .module import MODULES
 
 __version__ = '0.0.2'
 flask_app = Flask('evil-oauth')
@@ -11,6 +11,7 @@ cache = Cache(temp_dir)
 
 OPAQUE_TOKEN_COUNT_KEY = "opaque_token_count"
 MODULES = {
-    'attack': ATTACK_MODULES,
+    'module': MODULES,
+    'tokens': None,
     'exit': None
 }
