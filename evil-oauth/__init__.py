@@ -10,4 +10,7 @@ temp_dir = tempfile.mkdtemp()
 cache = Cache(temp_dir)
 
 OPAQUE_TOKEN_COUNT_KEY = "opaque_token_count"
-MODULES = { 'attack': ATTACK_MODULES }
+MODULES = {
+    'attack': ATTACK_MODULES,
+    'exit': None
+}
