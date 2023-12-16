@@ -2,7 +2,7 @@ import base64
 import json
 import logging
 from datetime import datetime, date
-from . import cache, OPAQUE_TOKEN_COUNT_KEY
+from . import cache
 
 def decode_access_token(parts):
     if len(parts) != 3:
@@ -20,34 +20,33 @@ def get_cache(cache_key):
 
 def process_token(token):
     parts = token.split('.')
-    if len(parts) == 3:
-        try:
-            decoded_payload = decode_access_token(parts)
-            unique_name = decoded_payload.get('unique_name')
-            if not unique_name:
-                raise ValueError('Unique name not found in token payload')
+    try:
+        decoded_payload = decode_access_token(parts)
+        unique_name = decoded_payload.get('unique_name')
+        if not unique_name:
+            raise ValueError('Unique name not found in token payload')
 
-            scope = decoded_payload.get('scp')
-            time = datetime.now().strftime('%H:%M:%S')
-            today = date.today().strftime('%d-%m-%Y')
+        scope = decoded_payload.get('scp')
+        time = datetime.now().strftime('%H:%M:%S')
+        today = date.today().strftime('%d-%m-%Y')
 
-            cache_key = f'user_data_{unique_name}'
-            cache_data = {
-                'access_token': token,
-                'scope': scope,
-                'time': time,
-                'date': today,
-                'email_address': unique_name
-            }
+        cache_key = f'user_data_{unique_name}'
+        cache_data = {
+            'access_token': token,
+            'scope': scope,
+            'time': time,
+            'date': today,
+            'email_address': unique_name
+        }
 
-            cache.set(cache_key, cache_data)
-            return {'user_data_key': cache_key, 'data': cache_data}
+        cache.set(cache_key, cache_data)
+        return {'user_data_key': cache_key, 'data': cache_data}
 
-        except Exception as e:
-            logging.error(f'Error processing access_token: {e}')
+    except ValueError as e:
+        logging.error(f'Error processing token: {e}')
 
-    opaque_token_count = cache.get(OPAQUE_TOKEN_COUNT_KEY, 0) + 1
-    cache.set(OPAQUE_TOKEN_COUNT_KEY, opaque_token_count)
+    opaque_token_count = cache.get('opaque_token_count', 0) + 1
+    cache.set('opaque_token_count', opaque_token_count)
 
     opaque_key = f'opaque_token_{opaque_token_count}'
     time = datetime.now().strftime('%H:%M:%S')

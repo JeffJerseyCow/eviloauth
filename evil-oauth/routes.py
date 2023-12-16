@@ -21,13 +21,13 @@ def callback():
     if token:
         try:
             cache_data = process_token(token)
-            logging.info('Processed Token Data: %s', cache_data)
+            logging.info("Processed Token Data: %s", cache_data)
             return jsonify({'status': 'success', 'message': 'Token received', 'data': cache_data})
         except ValueError as e:
             logging.error('Cannot process_token %s', e)
-            opaque_token_count = get_cache("opaque_token_count")
-            opaque_token_data = get_cache(f'opaque_{opaque_token_count}')
-            logging.info('Opaque Token Data: %s', opaque_token_data)
+            opaque_token_count = get_cache('opaque_token_count')
+            opaque_token = get_cache(f'opaque_token_{opaque_token_count}')
+            logging.info("Opaque Token: %s", opaque_token)
             return jsonify({'status': 'error', 'message': str(e)}), 400
     else:
         logging.error('Callback didn\'t receive access_token')

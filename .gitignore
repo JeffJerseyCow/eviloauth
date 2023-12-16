@@ -1,6 +1,8 @@
 # Files
 *.swp
 *.db
+*.idea
 # Folders
 __pycache__
 tmp
+.idea
