@@ -10,7 +10,7 @@ We effectively pretend that we're a Single Page Application (SPA), or mobile app
 ## Examples
 Ensure you're in the 'evil_oauth' directory.
 ```shell
-python3 -m src.app -c '77248f8f-96e8-436e-9dfa-8f8ed6e32add'  -s 'Mail.Read User.Read' -e https://login.microsoftonline.com/common/oauth2/v2.0/authorize -v
+python3 -m evil-oauth.app -c '77248f8f-96e8-436e-9dfa-8f8ed6e32add'  -s 'Mail.Read User.Read' -e https://login.microsoftonline.com/common/oauth2/v2.0/authorize -v
 ```
 ## Resources
 Microsoft GraphAPI Scopes - https://learn.microsoft.com/en-us/graph/permissions-reference
