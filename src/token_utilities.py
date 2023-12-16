@@ -21,33 +21,30 @@ def get_cache(cache_key):
 def process_token(token):
     parts = token.split('.')
     try:
-        if len(parts) == 3:
-            decoded_payload = decode_access_token(parts)
-            unique_name = decoded_payload.get('unique_name')
-            if not unique_name:
-                raise ValueError('Unique name not found in token payload')
+        decoded_payload = decode_access_token(parts)
+        unique_name = decoded_payload.get('unique_name')
+        if not unique_name:
+            raise ValueError('Unique name not found in token payload')
 
-            scope = decoded_payload.get('scp')
-            time = datetime.now().strftime('%H:%M:%S')
-            today = date.today().strftime('%d-%m-%Y')
+        scope = decoded_payload.get('scp')
+        time = datetime.now().strftime('%H:%M:%S')
+        today = date.today().strftime('%d-%m-%Y')
 
-            cache_key = f'user_data_{unique_name}'
-            cache_data = {
-                'access_token': token,
-                'scope': scope,
-                'time': time,
-                'date': today,
-                'email_address': unique_name
-            }
+        cache_key = f'user_data_{unique_name}'
+        cache_data = {
+            'access_token': token,
+            'scope': scope,
+            'time': time,
+            'date': today,
+            'email_address': unique_name
+        }
 
-            cache.set(cache_key, cache_data)
-            return {'user_data_key': cache_key, 'data': cache_data}
+        cache.set(cache_key, cache_data)
+        return {'user_data_key': cache_key, 'data': cache_data}
 
-    except Exception as e:
-        logging.error(f'Error processing access_token: {e}')
-        # Handle as an opaque token
+    except ValueError as e:
+        logging.error(f'Error processing token: {e}')
 
-    # Increment and store the count for opaque tokens
     opaque_token_count = cache.get('opaque_token_count', 0) + 1
     cache.set('opaque_token_count', opaque_token_count)
 
