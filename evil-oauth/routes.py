@@ -3,6 +3,7 @@ from flask import request, jsonify, render_template
 from . import flask_app
 from .token_utilities import process_token, get_cache
 
+
 @flask_app.route('/')
 def home():
     endpoint = flask_app.config.get('ENDPOINT')
@@ -12,6 +13,7 @@ def home():
     redirect_uri = flask_app.config.get('REDIRECT_URI')
     return render_template('index.html', endpoint=endpoint, client_id=client_id, scope=scope,
                            response_type=response_type, redirect_uri=redirect_uri)
+
 
 @flask_app.route('/callback', methods=['POST'])
 def callback():
@@ -33,7 +35,10 @@ def callback():
         logging.error('Callback didn\'t receive access_token')
         return jsonify({'status': 'error', 'message': 'No token provided'}), 400
 
+
 redirect_uri_endpoint = flask_app.config.get('REDIRECT_URI_ENDPOINT')
+
+
 @flask_app.route(f'/{redirect_uri_endpoint}', methods=['GET'])
 def redirect():
     final_destination = flask_app.config.get('FINAL_DESTINATION')

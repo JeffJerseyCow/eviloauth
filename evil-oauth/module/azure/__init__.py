@@ -1,1 +1,1 @@
-AZURE_MODULES = { 'read_mail' }
+AZURE_MODULES = {'read_mail'}

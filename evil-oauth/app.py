@@ -8,8 +8,10 @@ from . import flask_app, __version__, MODULES, cache
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import NestedCompleter
 
+
 def load_modules():
     module_dict = {}
+    pass
 
     for module in [f'evil-oauth.module.{k}.{i}' for (k, v) in MODULES['module'].items() for i in v]:
         module_dict[module] = importlib.import_module(module)
@@ -17,34 +19,43 @@ def load_modules():
 
     return module_dict
 
-def set_log_level(verbose):
-	log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
-	if verbose == 0:
-		logging.basicConfig(level=logging.WARNING, format=log_format)
-	elif verbose == 1:
-		logging.basicConfig(level=logging.INFO, format=log_format)
-	elif verbose >= 2:
-		logging.basicConfig(level=logging.DEBUG, format=log_format)
+def set_log_level(verbose):
+    log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
+    if verbose == 0:
+        logging.basicConfig(level=logging.WARNING, format=log_format)
+    elif verbose == 1:
+        logging.basicConfig(level=logging.INFO, format=log_format)
+    elif verbose >= 2:
+        logging.basicConfig(level=logging.DEBUG, format=log_format)
+
 
 def shutdown(flask_server):
     print('Exiting...')
     flask_server.shutdown()
     sys.exit()
 
+
 def build_parser():
     parser = argparse.ArgumentParser(prog=f'evil-oauth {__version__}')
-    parser.add_argument('-c', '--client-id', required=True, help='OAuth2.0 Client ID')
+    parser.add_argument('-c', '--client-id', required=True,
+                        help='OAuth2.0 Client ID')
     parser.add_argument('-r', '--response-type', default='token',
-        help='OAuth 2.0 Response Type [code (AuthZ "Code" Flow) | token (Implicit "Token" Flow)]')
+                        help='OAuth 2.0 Response Type [code (AuthZ "Code" Flow) | token (Implicit "Token" Flow)]')
     parser.add_argument('-s', '--scope', required=True, help='OAuth2.0 Scopes')
-    parser.add_argument('-e', '--endpoint', required=True, help='OAuth2.0 Target URI Endpoint')
+    parser.add_argument('-e', '--endpoint', required=True,
+                        help='OAuth2.0 Target URI Endpoint')
     parser.add_argument('-f', '--final-destination', default='/', help='Final Destination location to redirect ' +
-                  'user')
-    parser.add_argument('-v', '--verbose', action='count', default=0, help='Increase verbosity level')
-    parser.add_argument('-u', '--redirect-uri-endpoint', required=True, help='Redirect URI Endpoint string')
-    parser.add_argument('--redirect_server', default='127.0.0.1:5000', help='URI of the redirect server')
+                        'user')
+    parser.add_argument('-v', '--verbose', action='count',
+                        default=0, help='Increase verbosity level')
+    parser.add_argument('-u', '--redirect-uri-endpoint',
+                        required=True, help='Redirect URI Endpoint string')
+    parser.add_argument(
+        '--redirect_server', default='127.0.0.1:5000', help='URI of the redirect server')
     return parser
+
 
 def main():
     parser = build_parser()
@@ -61,7 +72,7 @@ def main():
     logging.info(f'Redirect URI: {redirect_uri}')
     logging.info(f'Final Destination: {args.final_destination}')
     logging.info(f'{args.endpoint}?client_id={args.client_id}&scope={args.scope}&'
-             f'response_type={args.response_type}&redirect_uri={redirect_uri}')
+                 f'response_type={args.response_type}&redirect_uri={redirect_uri}')
 
     # Store arguments for routes.py
     flask_app.config['ENDPOINT'] = args.endpoint
@@ -74,7 +85,8 @@ def main():
 
     # Build flask application
     from . import routes
-    flask_server = make_server('127.0.0.1', 5000, flask_app, ssl_context='adhoc')
+    flask_server = make_server(
+        '127.0.0.1', 5000, flask_app, ssl_context='adhoc')
     t = threading.Thread(target=flask_server.serve_forever)
     t.start()
 
@@ -90,7 +102,8 @@ def main():
 
         while True:
             commands = session.prompt()
-            cmd, sub, arg = (commands.lower().split(' ') + [None, None, None])[:3]
+            cmd, sub, arg = (commands.lower().split(
+                ' ') + [None, None, None])[:3]
 
             try:
 
@@ -111,6 +124,7 @@ def main():
     # Outer except
     except KeyboardInterrupt:
         shutdown(flask_server)
+
 
 if __name__ == '__main__':
     main()

@@ -4,15 +4,20 @@ import logging
 from datetime import datetime, date
 from . import cache
 
+
 def decode_access_token(payload):
-    payload_decoded = base64.urlsafe_b64decode(add_padding(payload)).decode('utf-8')
+    payload_decoded = base64.urlsafe_b64decode(
+        add_padding(payload)).decode('utf-8')
     return json.loads(payload_decoded)
+
 
 def add_padding(token_part):
     return token_part + '=' * (4 - len(token_part) % 4)
 
+
 def get_cache(cache_key):
     return cache.get(cache_key)
+
 
 def process_token(token):
 
