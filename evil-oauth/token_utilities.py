@@ -4,24 +4,27 @@ import logging
 from datetime import datetime, date
 from . import cache
 
-def decode_access_token(parts):
-    if len(parts) != 3:
-        raise ValueError('Token does not conform to JWT format')
 
-    _, payload, _ = parts
-    payload_decoded = base64.urlsafe_b64decode(add_padding(payload)).decode('utf-8')
+def decode_access_token(payload):
+    payload_decoded = base64.urlsafe_b64decode(
+        add_padding(payload)).decode('utf-8')
     return json.loads(payload_decoded)
+
 
 def add_padding(token_part):
     return token_part + '=' * (4 - len(token_part) % 4)
 
+
 def get_cache(cache_key):
     return cache.get(cache_key)
 
+
 def process_token(token):
-    parts = token.split('.')
+
     try:
-        decoded_payload = decode_access_token(parts)
+        header, payload, signature = token.split('.')
+
+        decoded_payload = decode_access_token(payload)
         unique_name = decoded_payload.get('unique_name')
         if not unique_name:
             raise ValueError('Unique name not found in token payload')
@@ -43,8 +46,9 @@ def process_token(token):
         return {'user_data_key': cache_key, 'data': cache_data}
 
     except ValueError as e:
-        logging.error(f'Error processing token: {e}')
+        logging.error(f'Cannot process token as JWT: {e}')
 
+    logging.info('Continuing to process opaque token')
     opaque_token_count = cache.get('opaque_token_count', 0) + 1
     cache.set('opaque_token_count', opaque_token_count)
 
