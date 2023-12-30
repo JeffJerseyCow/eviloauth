@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Microsoft OAuth with JavaScript</title>
+</head>
+<body>
+    <script src="{{ url_for('static', filename='redirect.js') }}"></script>
+    <script type="text/javascript">
+	const finalDestination= "{{ final_destination }}"
+        initializeRedirect(finalDestination);
+    </script>
+</body>
+</html>
