@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-# Files
-*.swp
-*.db
-*.idea
-# Folders
-__pycache__
-tmp
-.idea
-=======
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -143,4 +133,3 @@ dmypy.json
 .Trashes
 ehthumbs.db
 Thumbs.db
->>>>>>> 7992815 (Refactored)
