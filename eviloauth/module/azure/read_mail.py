@@ -1,8 +1,6 @@
-from typing import Any, List
-
 import logging
-
 import requests
+import html2text
 
 
 def print_normal(emails, email_count):
@@ -14,9 +12,32 @@ def print_normal(emails, email_count):
         print(email)
 
 
-def print_emails(emails, email_count, mode='normal'):
+def print_html(emails, email_count):
+    count = 0
+    for email in emails:
+        count += 1
+        if count > email_count and email_count != -1:
+            break
+
+        from_email = email['from']['emailAddress']['address']
+        from_name = email['from']['emailAddress']['name']
+        to_email = email['toRecipients'][0]['emailAddress']['address']
+        subject = email['subject']
+        body = html2text.html2text(email['body']['content'])
+
+        print('=========================================')
+        print(f'From: {from_name} <{from_email}>')
+        print(f'To: {to_email}')
+        print(f'Subject: {subject}')
+        print(f'Body: {body}')
+        print('=========================================')
+
+
+def print_emails(emails, email_count, mode='html'):
     if mode == 'normal':
         print_normal(emails, email_count)
+    elif mode == 'html':
+        print_html(emails, email_count)
 
 
 def __load__():
@@ -40,7 +61,7 @@ def __run__(cache, i):
             'Authorization': f'Bearer {access_token.raw_token}'
         }
 
-        emails: list[Any] = []
+        emails = []
 
         # Download until count reached or no emails remaning
         # Always download 10 at a time

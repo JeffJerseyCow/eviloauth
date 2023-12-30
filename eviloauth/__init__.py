@@ -1,11 +1,7 @@
 """An OAuth2.0 attack and security research tool."""
-
-import sys
 import tempfile
-
 from diskcache import Cache
 from flask import Flask
-
 from .module import MODULES
 
 MODULES = {
