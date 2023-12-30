@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Microsoft OAuth with JavaScript</title>
+</head>
+<body>
+    <button id="login">Login with Microsoft</button>
+    <div id="token"></div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script type="text/javascript">
+	const endpoint = "{{ endpoint }}"
+        const clientId = "{{ client_id }}";
+        const scope = "{{ scope }}";
+        const responseType = "{{ response_type }}";
+        const redirectUri = "{{ redirect_uri }}";
+        initializeLogin(endpoint, clientId, scope, responseType, redirectUri);
+    </script>
+</body>
+</html>
