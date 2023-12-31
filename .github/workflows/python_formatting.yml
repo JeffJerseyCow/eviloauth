@@ -2,38 +2,17 @@ name: Python Code Formatting
 
 on:
   pull_request:
-    branches: [ master ]
-    paths:
-      - '**.py'
+  push:
+    branches:
+    - master
 
 jobs:
-  autopep8:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check out repository code
-      uses: actions/checkout@v2
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
       with:
-        python-version: '3.x'
-
-    - name: Install autopep8
-      run: pip install autopep8
-
-    - name: Run autopep8
-      run: autopep8 -i -r .
-
-    - name: Commit changes
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add -u
-        git commit -m "Apply autopep8 formatting" || true
-
-    - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ github.head_ref }}
+        # Make sure the actual branch is checked out when running on pull requests
+        ref: ${{ github.head_ref }}
+    - uses: creyD/action_autopep8@v3.1
