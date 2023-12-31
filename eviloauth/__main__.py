@@ -9,12 +9,16 @@ from prompt_toolkit.completion import NestedCompleter
 from werkzeug.serving import make_server
 
 from . import MODULES, app, cache
+
+
 def load_modules():
     module_dict = {}
     for module in [f'eviloauth.module.{k}.{i}' for (k, v) in MODULES['module'].items() for i in v]:
         module_dict[module] = importlib.import_module(module)
         module_dict[module].__load__()
     return module_dict
+
+
 def set_log_level(verbose):
     log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
@@ -24,10 +28,14 @@ def set_log_level(verbose):
         logging.basicConfig(level=logging.INFO, format=log_format)
     elif verbose >= 2:
         logging.basicConfig(level=logging.DEBUG, format=log_format)
+
+
 def shutdown(flask_server):
     print('Exiting...')
     flask_server.shutdown()
     sys.exit()
+
+
 def build_parser():
     parser = argparse.ArgumentParser(prog=f'eviloauth')
     parser.add_argument('-c', '--client-id', required=True,
@@ -46,6 +54,8 @@ def build_parser():
     parser.add_argument(
         '--redirect_server', default='127.0.0.1:5000', help='URI of the redirect server')
     return parser
+
+
 def main():
     parser = build_parser()
     args = parser.parse_args()
@@ -112,5 +122,7 @@ def main():
     # Outer except
     except KeyboardInterrupt:
         shutdown(flask_server)
+
+
 if __name__ == '__main__':
     main()

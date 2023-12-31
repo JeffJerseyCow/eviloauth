@@ -3,6 +3,7 @@ from datetime import datetime
 
 import jwt
 
+
 class AccessToken:
     def __init__(self, raw_token):
         self.is_jwt = False
