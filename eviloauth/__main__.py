@@ -28,8 +28,6 @@ def shutdown(flask_server):
     print('Exiting...')
     flask_server.shutdown()
     sys.exit()
-
-
 def build_parser():
     parser = argparse.ArgumentParser(prog=f'eviloauth')
     parser.add_argument('-c', '--client-id', required=True,
@@ -116,7 +114,5 @@ def main():
     # Outer except
     except KeyboardInterrupt:
         shutdown(flask_server)
-
-
 if __name__ == '__main__':
     main()
