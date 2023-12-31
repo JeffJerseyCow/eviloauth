@@ -28,6 +28,9 @@ jobs:
     - name: Run autopep8
       run: autopep8 -i -r .
 
+    - name: Pull latest changes
+      run: git pull origin ${{ github.head_ref }}
+
     - name: Commit changes
       run: |
         git config --local user.email "action@github.com"
