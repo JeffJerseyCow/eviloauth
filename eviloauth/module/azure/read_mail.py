@@ -45,14 +45,12 @@ def __load__():
     pass
 
 
-def __run__(cache, i):
+def __run__(access_tokens, i):
     print('RUNNING read_mail')
-    access_tokens = list(cache.iterkeys())
-    access_token_id = (access_tokens + [None])[0]
+    access_token_id, access_token = next(iter(access_tokens.items()))
 
     if access_token_id:
         print(f'Using ID "{access_token_id}"')
-        access_token = cache.get(access_token_id)
 
         email_count = 10
 

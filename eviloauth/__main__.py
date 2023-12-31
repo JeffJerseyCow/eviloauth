@@ -110,10 +110,11 @@ def main():
 
                 elif cmd == 'module':
                     mod = module_dict[f'eviloauth.{cmd}.{sub}.{arg}']
-                    mod.__run__(cache, 0)
+                    mod.__run__(cache.get('tokens'), 0)
 
                 elif cmd == 'tokens':
-                    print([v for v in cache])
+                    access_tokens = cache.get('tokens')
+                    print([v for v in access_tokens.keys()])
 
             # Inner except
             except KeyError as e:

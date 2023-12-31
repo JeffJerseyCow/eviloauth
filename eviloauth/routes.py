@@ -1,7 +1,5 @@
 import logging
-
 from flask import jsonify, render_template, request
-
 from . import app, cache  # type: ignore
 from .access_token import AccessToken
 
@@ -24,7 +22,10 @@ def callback():
     if token:
         try:
             access_token = AccessToken(token)
-            cache.set(str(access_token), access_token)
+            access_tokens = cache.get('tokens')
+            access_tokens.update({str(access_token): access_token})
+            cache.set('tokens', access_tokens)
+
             logging.info("Processed Token Data: %s", access_token)
             return jsonify({'status': 'success', 'message': 'Token received', 'data': str(access_token)})
         except ValueError as e:
