@@ -13,3 +13,4 @@ MODULES = {
 app = Flask('eviloauth')
 temp_dir = tempfile.mkdtemp()
 cache = Cache(temp_dir)
+cache.set('tokens', {})
