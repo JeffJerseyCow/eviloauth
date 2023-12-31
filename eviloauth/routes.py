@@ -19,7 +19,7 @@ def home():
 
 @app.route('/callback', methods=['POST'])
 def callback():
-    token = request.json.get('access_token') # type: ignore
+    token = request.json.get('access_token')  # type: ignore
 
     if token:
         try:
