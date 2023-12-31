@@ -46,8 +46,6 @@ def build_parser():
     parser.add_argument(
         '--redirect_server', default='127.0.0.1:5000', help='URI of the redirect server')
     return parser
-
-
 def main():
     parser = build_parser()
     args = parser.parse_args()
