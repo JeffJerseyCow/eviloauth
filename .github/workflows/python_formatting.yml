@@ -6,6 +6,9 @@ on:
     paths:
       - '**.py'
 
+permissions:
+  contents: write
+
 jobs:
   autopep8:
     runs-on: ubuntu-latest
