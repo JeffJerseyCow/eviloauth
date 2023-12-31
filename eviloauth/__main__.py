@@ -46,8 +46,6 @@ def build_parser():
     parser.add_argument(
         '--redirect_server', default='127.0.0.1:5000', help='URI of the redirect server')
     return parser
-
-
 def main():
     parser = build_parser()
     args = parser.parse_args()
@@ -89,7 +87,6 @@ def main():
 
     # Main process loop
     try:
-
         while True:
             commands = session.prompt()
             cmd, sub, arg = (commands.lower().split(
@@ -106,11 +103,9 @@ def main():
 
                 elif cmd == 'tokens':
                     print([v for v in cache])
-
             # Inner except
             except KeyError as e:
                 logging.warning('Unknown module %s' % e)
-
     # Outer except
     except KeyboardInterrupt:
         shutdown(flask_server)
