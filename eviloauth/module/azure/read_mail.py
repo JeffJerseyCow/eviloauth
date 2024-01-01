@@ -1,6 +1,7 @@
 import logging
 import requests
 import html2text
+from eviloauth.exceptions import EviloauthModuleException
 
 
 def print_normal(emails, email_count):
@@ -47,7 +48,12 @@ def __load__():
 
 def __run__(access_tokens, i):
     print('RUNNING read_mail')
-    access_token_id, access_token = next(iter(access_tokens.items()))
+
+    try:
+        access_token_id, access_token = next(iter(access_tokens.items()))
+    except StopIteration:
+        raise EviloauthModuleException(
+            'No access tokens found.')
 
     if access_token_id:
         print(f'Using ID "{access_token_id}"')
