@@ -17,7 +17,10 @@ Ensure you're in the 'eviloauth' directory.
 ```shell
 pip install poetry
 poetry install
-poetry run eviloauth -c '77248f8f-96e8-436e-9dfa-8f8ed6e32add'  -s 'Mail.Read User.Read' -e https://login.microsoftonline.com/common/oauth2/v2.0/authorize -v -u redirect
+poetry run eviloauth -v
+eviloauth# configure idp entra_implicit_flow
+eviloauth# tokens
+eviloauth# module azure read_mail
 ```
 
 ## Resources
