@@ -39,10 +39,7 @@ def callback():
         return jsonify({'status': 'error', 'message': 'No token provided'}), 400
 
 
-redirect_uri_endpoint = app.config.get('REDIRECT_URI_ENDPOINT')
-
-
-@app.route(f'/{redirect_uri_endpoint}', methods=['GET'])
+@app.route(f'/redirect', methods=['GET'])
 def redirect():
     final_destination = app.config.get('FINAL_DESTINATION')
     return render_template('redirect.html', final_destination=final_destination)
