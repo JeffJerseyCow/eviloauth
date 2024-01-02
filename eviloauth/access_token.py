@@ -1,7 +1,6 @@
+import jwt
 import logging
 from datetime import datetime
-
-import jwt
 
 
 class AccessToken:
@@ -25,9 +24,9 @@ class AccessToken:
 
     def __str__(self):
         if self.is_jwt:
-            return f'JWT-{self.upn}-{self.token_id}-{self.time}'
+            return f'AT-JWT-{self.upn}-{self.token_id}-{self.time}'
         else:
-            return f'OAT-{self.token_id}-{self.time}'
+            return f'AT-O-{self.token_id}-{self.time}'
 
     def __repr__(self):
         return self.__str__()
