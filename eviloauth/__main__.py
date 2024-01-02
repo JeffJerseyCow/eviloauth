@@ -41,9 +41,6 @@ def main():
     args = parser.parse_args()
     set_log_level(args.verbose)
 
-    redirect_uri = f'https://{args.redirect_server}/redirect'
-    app.config['REDIRECT_URI'] = redirect_uri
-
     logging.info(f'Redirect Server: {args.redirect_server}')
 
     # Build flask application
@@ -84,7 +81,7 @@ def main():
                     print([v for v in access_tokens.keys()])
 
                 elif cmd == 'configure':
-                    IDP(arg, redirect_uri)
+                    IDP(arg, args.redirect_server)
 
                 else:
                     raise EviloauthCommandException(
