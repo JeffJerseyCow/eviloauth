@@ -1,5 +1,7 @@
 import string
+import base64
 import random
+import hashlib
 import logging
 import requests
 from . import get_idps, app
@@ -44,15 +46,18 @@ class IDP():
                 'response_type': self.response_type,
                 'redirect_uri': f'https://{self.redirect_server}/redirect'
             }
-            uri = requests.Request('GET', self.authz_endpoint, params=params).prepare().url
+            uri = requests.Request(
+                'GET', self.authz_endpoint, params=params).prepare().url
             logging.info(uri)
 
         elif self.idp == 'entra_code_flow':
             self.response_type = 'code'
             self.redirect_uri = f'https://{self.redirect_server}/hook'
             self.state = self.__generate_state__()
-            self.code_verifier = self.code_challenge = self.__generate_code_verifier__()
-            self.code_challenge_method = 'plain'
+            self.code_verifier = self.__generate_code_verifier__()
+            self.code_challenge = self.__generate_code_challenge__(
+                self.code_verifier)
+            self.code_challenge_method = 'S256'
 
             app.config['TOKEN_ENDPOINT'] = self.token_endpoint
             app.config['REDIRECT_URI'] = self.redirect_uri
@@ -71,12 +76,20 @@ class IDP():
                 'code_challenge': self.code_challenge,
                 'code_challenge_method': self.code_challenge_method
             }
-            uri = requests.Request('GET', self.authz_endpoint, params=params).prepare().url
+            uri = requests.Request(
+                'GET', self.authz_endpoint, params=params).prepare().url
             logging.info(uri)
 
     def __generate_state__(self):
-        return ''.join([str(random.randint(0,9)) for _ in range(5)])
+        return ''.join([str(random.randint(0, 9)) for _ in range(5)])
 
     def __generate_code_verifier__(self):
         allowed_chars = string.ascii_letters + string.digits + "-._~"
         return ''.join([random.choice(allowed_chars) for _ in range(48)])
+
+    def __generate_code_challenge__(self, code_verifier):
+        code_verifier_encoded = code_verifier.encode()
+        code_verifier_digest = hashlib.sha256(code_verifier_encoded).digest()
+        code_challenge = base64.urlsafe_b64encode(
+            code_verifier_digest).decode().replace('=', '')
+        return code_challenge
