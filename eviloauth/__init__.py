@@ -20,9 +20,11 @@ temp_dir = tempfile.mkdtemp()
 cache = Cache(temp_dir)
 cache.set('tokens', {})
 
+
 def get_idps():
     from . import COMMANDS
     return list(COMMANDS.get('configure').get('idp').keys())
+
 
 def load_modules():
     module_dict = {}

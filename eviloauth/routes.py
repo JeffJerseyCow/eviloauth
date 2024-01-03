@@ -56,7 +56,8 @@ def hook():
         'code_verifier': app.config.get('CODE_VERIFIER'),
         'scope': app.config.get('SCOPE')
     }
-    response = requests.post(app.config.get('TOKEN_ENDPOINT'), headers=headers, data=data)
+    response = requests.post(app.config.get(
+        'TOKEN_ENDPOINT'), headers=headers, data=data)
 
     token_type = response.json()["token_type"]
     scope = response.json()["scope"]
