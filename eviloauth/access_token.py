@@ -1,7 +1,6 @@
+import jwt
 import logging
 from datetime import datetime
-import jwt
-
 class AccessToken:
     def __init__(self, raw_token):
         self.is_jwt = False
@@ -45,6 +44,7 @@ class AccessToken:
 
     def __str__(self):
         if self.is_jwt:
+
             return f'JWT-{self.upn}'
         
         else:

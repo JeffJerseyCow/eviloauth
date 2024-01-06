@@ -94,6 +94,7 @@ def main():
 
     redirect_uri = f'https://{args.redirect_server}/redirect'
     app.config['REDIRECT_URI'] = redirect_uri
+
     logging.info(f'Redirect Server: {args.redirect_server}')
 
     from . import routes
@@ -258,7 +259,7 @@ def main():
                     phishing_url = app.idp_instance.get_phishing_url()
                     print(f"Phishing URL:\n{phishing_url}")
                 else:
-                    print("Phishing URL not set, please run 'configure idp' first.")
+                    print("Phishing URL not set. Please run 'configure idp' first.")
                     
             elif cmd == 'help':
                 if not cmd_args or len(cmd_args) == 0:
