@@ -25,9 +25,7 @@ class AccessToken:
 
     def __str__(self):
         if self.is_jwt:
-            return f'JWT-{self.upn}-{self.token_id}-{self.time}'
-        else:
-            return f'OAT-{self.token_id}-{self.time}'
+        return f'JWT-{self.upn}-{self.token_id}-{self.time}'
 
     def __repr__(self):
         return self.__str__()
