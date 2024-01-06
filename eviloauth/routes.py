@@ -15,7 +15,7 @@ def home():
 def callback():
     access_token = request.json.get('access_token')  # type: ignore
 
-    if token:
+    if access_token:
         try:
             access_token = AccessToken(access_token)
             access_tokens = cache.get('tokens')

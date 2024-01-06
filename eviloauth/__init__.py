@@ -11,7 +11,15 @@ COMMANDS = {
         'entra_code_flow': None
     }},
     'module': MODULES,
-    'tokens': None,
+    'tokens': {
+        'list': None,
+        # TODO: create add token wizard
+        'add': None
+    },
+    'target': {
+        'list': None,
+        'set': None
+    },
     'exit': None
 }
 
@@ -19,6 +27,7 @@ app = Flask('eviloauth')
 temp_dir = tempfile.mkdtemp()
 cache = Cache(temp_dir)
 cache.set('tokens', {})
+cache.set('target', {})
 
 
 def get_idps():

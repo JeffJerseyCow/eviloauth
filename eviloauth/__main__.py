@@ -2,12 +2,13 @@ import sys
 import logging
 import argparse
 import threading
-from .idp import IDP
+from dispatcher import Dispatcher
 from prompt_toolkit import PromptSession
 from werkzeug.serving import make_server
-from . import COMMANDS, app, cache, load_modules
 from prompt_toolkit.completion import NestedCompleter
-from .exceptions import EviloauthCommandException, EviloauthModuleException
+from eviloauth import COMMANDS, app, cache, load_modules
+from eviloauth.idp import IDP
+from eviloauth.exceptions import EviloauthCommandException, EviloauthModuleException
 
 
 def set_log_level(verbose):
@@ -28,12 +29,6 @@ def build_parser():
     parser.add_argument('-s', '--redirect_server',
                         default='127.0.0.1:5000', help='URI of the redirect server')
     return parser
-
-
-def shutdown(flask_server):
-    print('Exiting...')
-    flask_server.shutdown()
-    sys.exit()
 
 
 def main():
@@ -64,28 +59,11 @@ def main():
 
         while True:
             commands = session.prompt()
-            cmd, sub, arg = (commands.lower().split(
-                ' ') + [None, None, None])[:3]
 
             try:
-
-                if cmd == 'exit':
-                    shutdown(flask_server)
-
-                elif cmd == 'module':
-                    mod = module_dict[f'eviloauth.{cmd}.{sub}.{arg}']
-                    mod.__run__(cache.get('tokens'), 0)
-
-                elif cmd == 'tokens':
-                    access_tokens = cache.get('tokens')
-                    print([v for v in access_tokens.keys()])
-
-                elif cmd == 'configure':
-                    IDP(arg, args.redirect_server)
-
-                else:
-                    raise EviloauthCommandException(
-                        'Unknown command %s' % cmd)
+                dispatcher = Dispatcher(
+                    flask_server, module_dict, cache, args.redirect_server)
+                dispatcher.dispatch(commands)
 
             # Inner except
             except EviloauthCommandException as e:
@@ -100,7 +78,9 @@ def main():
 
     # Outer except
     except KeyboardInterrupt:
-        shutdown(flask_server)
+        print('Exiting...')
+        flask_server.shutdown()
+        sys.exit()
 
 
 if __name__ == '__main__':
