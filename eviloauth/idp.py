@@ -39,3 +39,9 @@ class IDP():
 
         elif self.idp == 'entra_code_flow':
             logging.error('Code flow not implemented yet.')
+        
+    def get_phishing_url(self):
+        if hasattr(self, 'endpoint') and hasattr(self, 'client_id') and hasattr(self, 'scope') and hasattr(self, 'redirect_uri'):
+            return f'{self.endpoint}?client_id={self.client_id}&scope={self.scope}&response_type={self.response_type}&redirect_uri={self.redirect_uri}'
+        else:
+            return "URL not available. Please configure the IDP first."

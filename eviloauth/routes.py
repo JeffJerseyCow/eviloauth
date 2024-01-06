@@ -22,22 +22,17 @@ def callback():
     if token:
         try:
             access_token = AccessToken(token)
-            access_tokens = cache.get('tokens')
-            access_tokens.update({str(access_token): access_token})
-            cache.set('tokens', access_tokens)
+            token_key = str(access_token)  # Unique string representation of the token
+            cache.set(token_key, access_token)  # Store the token using its unique key
 
             logging.info("Processed Token Data: %s", access_token)
-            return jsonify({'status': 'success', 'message': 'Token received', 'data': str(access_token)})
+            return jsonify({'status': 'success', 'message': 'Token received', 'data': token_key})
         except ValueError as e:
             logging.error('Cannot process_token %s', e)
-            opaque_token_count = cache.get('opaque_token_count')
-            opaque_token = cache.get(f'opaque_token_{opaque_token_count}')
-            logging.info("Opaque Token: %s", opaque_token)
             return jsonify({'status': 'error', 'message': str(e)}), 400
     else:
         logging.error('Callback didn\'t receive access_token')
         return jsonify({'status': 'error', 'message': 'No token provided'}), 400
-
 
 @app.route(f'/redirect', methods=['GET'])
 def redirect():
