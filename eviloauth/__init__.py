@@ -3,32 +3,32 @@ import tempfile
 import importlib
 from diskcache import Cache
 from flask import Flask
-from .modules import MODULES
-from prompt_toolkit.completion import NestedCompleter
-
-token_commands = {
-    'add': {
-        'upn': None
-        }, 
-    'delete': None, 
-    'list': None
-}
+from .module import MODULES
 
 COMMANDS = {
     'configure': {'idp': {
         'entra_implicit_flow': None,
         'entra_code_flow': None
     }},
-    'modules': MODULES,
-    'tokens': token_commands, 
+    'module': MODULES,
+    'tokens': {
+        'list': None,
+        'set': None,  # Adding the 'set' subcommand for tokens
+        # TODO: create add token wizard
+        'add': None
+    },
+    'target': {
+        'list': None,
+        'set': None
+    },
     'exit': None
 }
 
 app = Flask('eviloauth')
 temp_dir = tempfile.mkdtemp()
 cache = Cache(temp_dir)
-
-completer = NestedCompleter.from_nested_dict(COMMANDS)
+cache.set('tokens', {})
+cache.set('target', {})
 
 
 def get_idps():
@@ -38,10 +38,7 @@ def get_idps():
 
 def load_modules():
     module_dict = {}
-    for module in [f'eviloauth.modules.{k}.{i}' for (k, v) in COMMANDS['modules'].items() for i in v]:
+    for module in [f'eviloauth.module.{k}.{i}' for (k, v) in COMMANDS['module'].items() for i in v]:
         module_dict[module] = importlib.import_module(module)
         module_dict[module].__load__()
     return module_dict
-
-def get_completer():
-    return completer

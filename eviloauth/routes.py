@@ -1,6 +1,7 @@
 import logging
 import requests
 from . import app, cache
+from .dispatcher import Dispatcher
 from .access_token import AccessToken
 from .refresh_token import RefreshToken
 from flask import jsonify, render_template, request, redirect as flask_redirect
@@ -13,23 +14,33 @@ def home():
 
 @app.route('/callback', methods=['POST'])
 def callback():
-    access_token = request.json.get('access_token')  # type: ignore
+    token_data = request.json.get('access_token')  # Retrieve the raw token data
 
-    if token:
+    if token_data:
         try:
-            access_token = AccessToken(access_token)
-            access_tokens = cache.get('tokens')
-            access_tokens.update({str(access_token): access_token})
-            cache.set('tokens', access_tokens)
+            # Convert token_data to an AccessToken object if it's a string
+            if isinstance(token_data, str):
+                access_token = AccessToken(token_data)
+            else:
+                logging.error("Invalid access token format")
+                return jsonify({'status': 'error', 'message': 'Invalid token format'}), 400
 
-            logging.info("Access Token: %s", access_token)
-            return jsonify({'status': 'success', 'message': 'Token received', 'data': str(access_token)})
+            # Use Dispatcher's class method to get the token manager
+            token_manager = Dispatcher.get_token_manager()
+
+            if token_manager:
+                token_key = token_manager.add(access_token)  # Pass the AccessToken object
+                logging.info("Access Token: %s", str(access_token))
+                return jsonify({'status': 'success', 'message': 'Token received', 'data': token_key})
+            else:
+                logging.error("Token manager not available")
+                return jsonify({'status': 'error', 'message': 'Token manager not available'}), 500
 
         except ValueError as e:
-            logging.error('Cannot process_token %s', e)
+            logging.error('Cannot process token %s', e)
             return jsonify({'status': 'error', 'message': str(e)}), 400
     else:
-        logging.error('Callback didn\'t receive access_token')
+        logging.error('Callback did not receive access_token')
         return jsonify({'status': 'error', 'message': 'No token provided'}), 400
 
 @app.route(f'/redirect', methods=['GET'])
@@ -40,9 +51,12 @@ def redirect():
 
 @app.route(f'/hook', methods=['GET'])
 def hook():
+    access_token = request.json.get('access_token')
+    token_manager = Dispatcher.get_token_manager()
     code = request.args.get('code')
     state = request.args.get('state')
     session_state = request.args.get('session_state')
+    token_key = token_manager.add(access_token)
 
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
