@@ -29,8 +29,8 @@ class Dispatcher:
         elif cmd == 'tokens':
             self.dispatch_tokens(cmd, sub)
 
-        elif cmd == 'configure':
-            self.dispatch_configure(cmd, sub, arg)
+        elif cmd == 'idp':
+            self.dispatch_idp(cmd, sub, arg)
 
         elif cmd == 'target':
             self.dispatch_target(cmd, sub, arg)
@@ -49,6 +49,7 @@ class Dispatcher:
         mod.__run__(self.cache.get('target'), 0)
 
     def dispatch_tokens(self, cmd, sub):
+        print(cmd, sub)
         access_tokens = self.cache.get('tokens')
         if sub == 'list':
             print([v for v in access_tokens.keys()])
@@ -56,10 +57,17 @@ class Dispatcher:
             logging.error('Not implemented yet')
         else:
             raise EviloauthCommandException(
-                'Unknown "%s" command %s' % cmd, sub)
+                'Unknown "%s" command %s' % (cmd, sub))
 
-    def dispatch_configure(self, cmd, sub, arg):
-        IDP(arg, self.redirect_server)
+    def dispatch_idp(self, cmd, sub, arg):
+        if sub == 'list':
+            print('Current IDP: %s' % self.cache.get('idp'))
+        elif sub == 'configure':
+            idp = IDP(arg, self.redirect_server)
+            self.cache.set('idp', idp)
+        else:
+            raise EviloauthCommandException(
+                'Unknown "%s" command %s' % (cmd, sub))
 
     def dispatch_target(self, cmd, sub, arg):
         target = self.cache.get('target')
