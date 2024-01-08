@@ -8,3 +8,8 @@ class EviloauthModuleException(Exception):
 
     def __init__(self, message="An error occurred in Eviloauth module execution"):
         super().__init__(message)
+
+
+class EviloauthInvalidTokenException(Exception):
+    def __init__(self, message):
+        super().__init__(message)

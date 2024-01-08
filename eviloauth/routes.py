@@ -1,8 +1,7 @@
 import logging
 import requests
-from . import app, cache
-from .access_token import AccessToken
-from .refresh_token import RefreshToken
+from eviloauth import app, cache
+from eviloauth.general_token import GeneralToken
 from flask import jsonify, render_template, request, redirect as flask_redirect
 
 
@@ -17,10 +16,10 @@ def callback():
 
     if access_token:
         try:
-            access_token = AccessToken(access_token)
-            access_tokens = cache.get('tokens')
-            access_tokens.update({str(access_token): access_token})
-            cache.set('tokens', access_tokens)
+            general_token = GeneralToken(access_token=access_token)
+            general_tokens = cache.get('tokens')
+            general_tokens.update({str(general_token): general_token})
+            cache.set('tokens', general_tokens)
 
             logging.info("Access Token: %s", access_token)
             return jsonify({'status': 'success', 'message': 'Token received', 'data': str(access_token)})
@@ -48,13 +47,19 @@ def hook():
         'Content-Type': 'application/x-www-form-urlencoded',
         'Origin': '*'
     }
+
+    client_id = app.config.get('CLIENT_ID')
+    redirect_uri = app.config.get('REDIRECT_URI')
+    code_verifier = app.config.get('CODE_VERIFIER')
+    scope = app.config.get('SCOPE')
+
     data = {
-        'client_id': app.config.get('CLIENT_ID'),
+        'client_id': client_id,
         'grant_type': 'authorization_code',
         'code': code,
-        'redirect_uri': app.config.get('REDIRECT_URI'),
-        'code_verifier': app.config.get('CODE_VERIFIER'),
-        'scope': app.config.get('SCOPE')
+        'redirect_uri': redirect_uri,
+        'code_verifier': code_verifier,
+        'scope': scope
     }
     response = requests.post(app.config.get(
         'TOKEN_ENDPOINT'), headers=headers, data=data)
@@ -66,14 +71,23 @@ def hook():
     access_token = response.json()["access_token"]
     refresh_token = response.json()["refresh_token"]
 
-    access_token = AccessToken(access_token)
-    access_tokens = cache.get('tokens')
-    access_tokens.update({str(access_token): access_token})
-    cache.set('tokens', access_tokens)
-    logging.info("Access Token: %s", access_token)
+    general_token = GeneralToken(access_token=access_token,
+                                 refresh_token=refresh_token,
+                                 client_id=client_id,
+                                 code=code,
+                                 redirect_uri=redirect_uri,
+                                 code_verifier=code_verifier,
+                                 scope=scope,
+                                 token_endpoint=app.config.get(
+                                     'TOKEN_ENDPOINT'),
+                                 token_type=token_type,
+                                 expires_in=expires_in,
+                                 ext_expires_in=ext_expires_in)
 
-    refresh_token = RefreshToken(refresh_token)
-    # TODO: Store refresh token
+    general_tokens = cache.get('tokens')
+    general_tokens.update({str(general_token): general_token})
+    cache.set('tokens', general_tokens)
+    logging.info("Access Token: %s", access_token)
     logging.info("Refresh Token: %s", refresh_token)
 
     return flask_redirect(app.config.get('FINAL_DESTINATION'))

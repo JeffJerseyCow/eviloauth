@@ -46,17 +46,17 @@ def __load__():
     pass
 
 
-def __run__(target_access_token, i):
+def __run__(general_token, i):
     print('RUNNING read_mail')
 
-    if target_access_token:
-        print(f'Using ID "{target_access_token}"')
+    if general_token:
+        print(f'Using ID "{general_token}"')
 
         email_count = 10
 
         graph_url = 'https://graph.microsoft.com/v1.0/me/messages'
         graph_headers = {
-            'Authorization': f'Bearer {target_access_token.raw_token}'
+            'Authorization': f'Bearer {general_token.get_access_token().raw_token}',
         }
 
         emails = []
