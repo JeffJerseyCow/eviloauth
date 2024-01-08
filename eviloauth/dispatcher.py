@@ -49,10 +49,9 @@ class Dispatcher:
         mod.__run__(self.cache.get('target'), 0)
 
     def dispatch_tokens(self, cmd, sub):
-        print(cmd, sub)
-        access_tokens = self.cache.get('tokens')
+        general_tokens = self.cache.get('tokens')
         if sub == 'list':
-            print([v for v in access_tokens.keys()])
+            print([v for v in general_tokens.keys()])
         elif sub == 'add':
             logging.error('Not implemented yet')
         else:
@@ -70,17 +69,18 @@ class Dispatcher:
                 'Unknown "%s" command %s' % (cmd, sub))
 
     def dispatch_target(self, cmd, sub, arg):
-        target = self.cache.get('target')
-        tokens = self.cache.get('tokens')
 
         if sub == 'list':
+            target = self.cache.get('target')
             print(f'Current Target: {target}')
 
         elif sub == 'set':
-            if arg in tokens.keys():
-                access_token = tokens[arg]
-                self.cache.set('target', access_token)
+            general_tokens = self.cache.get('tokens')
 
-            elif arg not in tokens.keys():
+            if arg in general_tokens.keys():
+                general_token = general_tokens[arg]
+                self.cache.set('target', general_token)
+
+            elif arg not in general_tokens.keys():
                 raise EviloauthCommandException(
                     'Unknown token %s' % arg)
