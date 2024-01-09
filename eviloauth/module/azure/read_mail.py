@@ -49,34 +49,48 @@ def __load__():
 def __run__(target_access_token, i):
     print('RUNNING read_mail')
 
-    if target_access_token:
-        print(f'Using ID "{target_access_token}"')
+    if not target_access_token:
+        print("Error: No target access token provided.")
+        return
 
-        email_count = 10
+    print(f'Using ID "{target_access_token}"')
 
-        graph_url = 'https://graph.microsoft.com/v1.0/me/messages'
-        graph_headers = {
-            'Authorization': f'Bearer {target_access_token.raw_token}'
-        }
+    email_count = 10
+    graph_url = 'https://graph.microsoft.com/v1.0/me/messages'
+    graph_headers = {
+        'Authorization': f'Bearer {target_access_token.raw_token}'
+    }
 
-        emails = []
+    emails = []
 
-        # Download until count reached or no emails remaning
-        # Always download 10 at a time
+    try:
         while True:
             graph_response = requests.get(graph_url, headers=graph_headers)
 
+            if graph_response.status_code != 200:
+                print(f"Error fetching emails: {graph_response.status_code} - {graph_response.text}")
+                break
+
             emails_resp = graph_response.json()
 
-            emails_context = emails_resp.get('@odata.context')
             emails_value = emails_resp.get('value')
             emails_next_link = emails_resp.get('@odata.nextLink')
 
-            emails = emails + emails_value
+            if emails_value:
+                emails.extend(emails_value)
+            else:
+                print("No more emails to fetch.")
+                break
 
             if not emails_next_link or (email_count != -1 and len(emails) >= email_count):
                 break
 
             graph_url = emails_next_link
 
-        print_emails(emails, email_count)
+        if emails:
+            print_emails(emails, email_count)
+        else:
+            print("No emails found.")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")

