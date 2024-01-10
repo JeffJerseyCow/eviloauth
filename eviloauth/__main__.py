@@ -44,8 +44,8 @@ def main():
     session = PromptSession('eviloauth# ', completer=completer)
 
     module_dict = load_modules()
-
-    dispatcher = Dispatcher(flask_server, module_dict, args.redirect_server)
+    
+    dispatcher = Dispatcher(flask_server, module_dict, args.redirect_server, cache)
     
     try:
         while True:

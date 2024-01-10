@@ -6,10 +6,14 @@ from flask import Flask
 from .module import MODULES
 
 COMMANDS = {
-    'configure': {'idp': {
-        'entra_implicit_flow': None,
-        'entra_code_flow': None
-    }},
+    # TODO: change configure to 'idp configure' and 'idp list' etc...
+    'idp': {
+        'configure': {
+            'entra_implicit_flow': None,
+            'entra_code_flow': None
+        },
+        'list': None
+    },
     'module': MODULES,
     'tokens': {
         'list': None,
@@ -28,12 +32,13 @@ app = Flask('eviloauth')
 temp_dir = tempfile.mkdtemp()
 cache = Cache(temp_dir)
 cache.set('tokens', {})
-cache.set('target', {})
+cache.set('target', None)
+cache.set('idp', None)
 
 
 def get_idps():
     from . import COMMANDS
-    return list(COMMANDS.get('configure').get('idp').keys())
+    return list(COMMANDS.get('idp').get('configure').keys())
 
 
 def load_modules():

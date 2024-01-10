@@ -85,5 +85,19 @@ class IDP():
     def __generate_code_challenge__(self, code_verifier):
         code_verifier_encoded = code_verifier.encode()
         code_verifier_digest = hashlib.sha256(code_verifier_encoded).digest()
+
+    def __generate_code_challenge__(self, code_verifier):
+        code_verifier_encoded = code_verifier.encode()
+        code_verifier_digest = hashlib.sha256(code_verifier_encoded).digest()
         code_challenge = base64.urlsafe_b64encode(code_verifier_digest).decode().replace('=', '')
         return code_challenge
+
+    def __str__(self):
+        idp_str = f'{self.idp}'
+        idp_str += f'\n\tClient ID: {self.client_id}'
+        idp_str += f'\n\tScope: {self.scope}'
+        idp_str += f'\n\tFinal Destination: {self.final_destination}'
+        return idp_str
+
+    def __repr__(self):
+        return self.__str__()

@@ -46,47 +46,57 @@ def __load__():
     pass
 
 
-def __run__(target_access_token, i):
+def __run__(general_token, i):
     print('RUNNING read_mail')
 
-    if not target_access_token:
-        print("Error: No target access token provided.")
+    # Check for general_token availability
+    if not general_token:
+        print("Error: No general token provided.")
         return
 
-    print(f'Using ID "{target_access_token}"')
+    # Log the use of general_token
+    print(f'Using ID "{general_token}"')
 
+    # Define the number of emails to fetch
     email_count = 10
+
+    # Set up the Microsoft Graph API endpoint and headers
     graph_url = 'https://graph.microsoft.com/v1.0/me/messages'
     graph_headers = {
-        'Authorization': f'Bearer {target_access_token.raw_token}'
+        'Authorization': f'Bearer {general_token.get_access_token().raw_token}',
     }
 
     emails = []
 
     try:
+        # Fetch emails in a loop
         while True:
             graph_response = requests.get(graph_url, headers=graph_headers)
 
+            # Check for unsuccessful response
             if graph_response.status_code != 200:
                 print(f"Error fetching emails: {graph_response.status_code} - {graph_response.text}")
                 break
 
+            # Process the response
             emails_resp = graph_response.json()
-
             emails_value = emails_resp.get('value')
             emails_next_link = emails_resp.get('@odata.nextLink')
 
+            # Add the fetched emails to the list
             if emails_value:
                 emails.extend(emails_value)
             else:
                 print("No more emails to fetch.")
                 break
 
+            # Check for email count limit or next link
             if not emails_next_link or (email_count != -1 and len(emails) >= email_count):
                 break
 
             graph_url = emails_next_link
 
+        # Print the fetched emails
         if emails:
             print_emails(emails, email_count)
         else:
