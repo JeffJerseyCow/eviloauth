@@ -8,20 +8,18 @@ from datetime import datetime
 
 class GeneralToken:
     def __init__(self, **kwargs):
-
         self.kwargs = kwargs
-        refresh_token = kwargs.get('refresh_token')
         access_token_str = kwargs.get('access_token')
+        self.refresh_token = None  # Initialize refresh_token as None
 
         if access_token_str:
-            self.access_token_obj = AccessToken(access_token_str)  # Store the AccessToken object
+            self.access_token_obj = AccessToken(access_token_str)
             self.token_id = f'GT-{self.access_token_obj}'
-
         else:
             raise EviloauthInvalidTokenException("Access token is required")
 
-        if refresh_token:
-            self.refresh_token = RefreshToken(refresh_token)
+        if 'refresh_token' in kwargs:
+            self.refresh_token = RefreshToken(kwargs['refresh_token'])
 
     def __str__(self):
         return f"{self.token_id}"
@@ -65,10 +63,9 @@ class GeneralToken:
             self.access_token = AccessToken(response.json()["access_token"])
             self.refresh_token = RefreshToken(response.json()["refresh_token"])
 
-            return self.access_token
-
+            return self.access_token_obj
         else:
-            return self.access_token
+            return self.access_token_obj
 
     def get_refresh_token(self):
         return self.refresh_token
