@@ -3,6 +3,7 @@ import requests
 from eviloauth.access_token import AccessToken
 from eviloauth.refresh_token import RefreshToken
 from eviloauth.exceptions import EviloauthInvalidTokenException
+from datetime import datetime
 
 
 class GeneralToken:

@@ -13,7 +13,6 @@ class TokenManager:
         self.general_cache = general_cache
 
     def list_tokens(self):
-        # Get the 'tokens' from the main cache
         general_tokens = self.general_cache.get('tokens', {})
         return list(general_tokens.keys())
     
@@ -21,12 +20,9 @@ class TokenManager:
         if isinstance(access_token, AccessToken):
             token_key = str(access_token)
             self.cache.set(token_key, access_token)
-            logging.info(f"Token added with key: {token_key}")
-            # Debug: Print all current keys in the cache
-            logging.debug(f"Current keys in cache: {list(self.cache.keys())}")
             return token_key
             
-        def delete(self, token_key):
+    def delete(self, token_key):
             if token_key in self.cache:
                 self.cache.delete(token_key)
                 return True
@@ -34,71 +30,6 @@ class TokenManager:
 
     def list(self):
         return [key for key in self.cache.keys()]
-
-    def update_upn(self, token_key, new_upn):
-        # Retrieve the token from the general cache
-        general_tokens = self.general_cache.get('tokens', {})
-        token = general_tokens.get(token_key)
-
-        if token:
-            # Update the UPN for both JWT and OAT tokens
-            token.set_upn(new_upn)
-            general_tokens[token_key] = token  # Update the token in the general cache
-
-            # Update the general cache with the modified token
-            self.general_cache.set('tokens', general_tokens)
-
-            logging.info(f"UPN updated for token {token_key}.")
-            return True
-        else:
-            logging.error("Token not found.")
-            return False
-
-    def update_scope(self, token_key, new_scope):
-        # Retrieve the token from the general cache
-        general_tokens = self.general_cache.get('tokens', {})
-        token = general_tokens.get(token_key)
-
-        if token:
-            # Update the scope for both JWT and OAT tokens
-            token.set_scope(new_scope)
-            general_tokens[token_key] = token  # Update the token in the general cache
-
-            # Update the general cache with the modified token
-            self.general_cache.set('tokens', general_tokens)
-
-            logging.info(f"Scope updated for token {token_key}.")
-            return True
-        else:
-            logging.error("Token not found.")
-            return False
-
-    def update_expiry(self, token_key, time_str):
-        # Retrieve the token from the general cache
-        general_tokens = self.general_cache.get('tokens', {})
-        token = general_tokens.get(token_key)
-
-        if token:
-            try:
-                hours = int(time_str[:2])
-                minutes = int(time_str[2:])
-                new_expiry = datetime.utcnow() + timedelta(hours=hours, minutes=minutes)
-                
-                # Update the expiry for both JWT and OAT tokens
-                token.set_expiry(new_expiry)
-                general_tokens[token_key] = token  # Update the token in the general cache
-
-                # Update the general cache with the modified token
-                self.general_cache.set('tokens', general_tokens)
-
-                logging.info(f"Expiry updated to {new_expiry} for token {token_key}.")
-                return True
-            except (ValueError, IndexError):
-                logging.error("Invalid time format. Please enter time as HHMM.")
-                return False
-        else:
-            logging.error("Token not found.")
-            return False
         
 class Dispatcher:
     def __init__(self, flask_server, module_dict, redirect_server, cache):
@@ -148,16 +79,14 @@ class Dispatcher:
         if full_module_name in self.module_dict:
             mod = self.module_dict[full_module_name]
 
-            # Retrieve the target access token from the cache
             target_access_token = cache.get('target')
 
-            # Ensure module_args contains the necessary information
             if not module_args:
-                module_args = [target_access_token, 0]  # Default values for 'i' and 'target_access_token'
+                module_args = [target_access_token, 0]
             elif len(module_args) == 1:
-                module_args.append(0)  # Default value for 'i' if not provided
+                module_args.append(0)
 
-            mod.__run__(*module_args)  # Pass the target_access_token and 'i' to the module
+            mod.__run__(*module_args)
         else:
             logging.error(f'Module {full_module_name} not found')
 
@@ -169,11 +98,8 @@ class Dispatcher:
             if sub == 'list':
                 print('Current IDP: %s' % self.cache.get('idp'))
             elif sub == 'configure' and arg:
-                # Initialize the IDP instance with the provided argument
                 idp = IDP(arg, self.redirect_server)
-                # Store the IDP instance in the dispatcher's cache
                 self.cache.set('idp', idp)
-                # Retrieve and display the phishing URL
                 self.phishing_url = idp.get_phishing_url()
                 print(f"Phishing URL set: {self.phishing_url}")
             else:
@@ -188,17 +114,10 @@ class Dispatcher:
             subcmd = cmd_args[0]
 
             if subcmd == 'list':
-                # Call handle_tokens_list whether a specific key is provided or not
                 self.handle_tokens_list(cmd_args)
-
-            elif subcmd == 'set' and len(cmd_args) >= 4:
-                self.handle_tokens_set(cmd_args)
 
             elif subcmd == 'delete' and len(cmd_args) == 2:
                 self.handle_tokens_delete(cmd_args)
-
-            elif subcmd == 'add':
-                logging.error('Adding tokens not implemented yet')
 
             else:
                 raise EviloauthCommandException(f'Unknown subcommand {subcmd}')
@@ -206,10 +125,14 @@ class Dispatcher:
     def handle_tokens_list(self, cmd_args):
         if len(cmd_args) > 1:
             token_key = cmd_args[1].strip("'")
+            logging.info(f"Fetching token details for key: {token_key}")
+
             general_tokens = self.token_manager.cache.get('tokens', {})
+            logging.info(f"Current tokens in cache: {list(general_tokens.keys())}")
 
             if token_key in general_tokens:
                 token_obj = general_tokens[token_key]
+
                 if token_obj:
                     token_details = token_obj.get_token_details()
 
@@ -217,40 +140,14 @@ class Dispatcher:
                     for detail, value in token_details.items():
                         print(f"  {detail.capitalize()}: {value}")
                 else:
+                    logging.warning(f"No token object found for key: {token_key}")
                     print(f"No token found for key: {token_key}")
             else:
+                logging.warning(f"Token key {token_key} not found in cache")
                 print(f"No token found for key: {token_key}")
         else:
-            # Initialize general_tokens at the beginning of the else clause
             general_tokens = self.token_manager.cache.get('tokens', {})
             print("Available token keys:", list(general_tokens.keys()))
-
-    def handle_tokens_set(self, cmd_args):
-        if len(cmd_args) >= 4 and cmd_args[0] == 'set':
-            token_key = cmd_args[1]
-            action = cmd_args[2]
-            value = ' '.join(cmd_args[3:])
-
-            if action == 'upn':
-                if self.token_manager.update_upn(token_key, value):
-                    print(f"UPN updated successfully for {token_key}")
-                else:
-                    logging.error(f"Failed to update UPN for {token_key}")
-            elif action == 'expiry':
-                value_str = str(value)  # Convert to string to ensure it's in the correct format
-                if self.token_manager.update_expiry(token_key, value_str):
-                    logging.info(f"Expiry updated successfully for {token_key}")
-                else:
-                    logging.error(f"Failed to update expiry for {token_key}")
-            elif action == 'scope':
-                if self.token_manager.update_scope(token_key, value):
-                    logging.info(f"Scope updated successfully for {token_key}")
-                else:
-                    logging.error(f"Failed to update scope for {token_key}")
-            else:
-                logging.error("Invalid format for 'set' subcommand.")
-        else:
-            logging.error("Invalid format for 'set' subcommand.")
 
     def handle_tokens_delete(self, cmd_args):
         if len(cmd_args) == 2 and cmd_args[0] == 'delete':
@@ -262,19 +159,13 @@ class Dispatcher:
 
     def dispatch_configure(self, cmd_args):
         if len(cmd_args) >= 2:
-            # Extract subcommand and its argument
             sub = cmd_args[0]
             arg = cmd_args[1]
 
-            # Implement the logic for different subcommands
             if sub == 'idp':
-                # Check if the argument is one of the supported IDPs
                 if arg in ['entra_implicit_flow', 'entra_code_flow']:
-                    # Initialize and configure the IDP
                     idp = IDP(arg, self.redirect_server)
-                    # Set the IDP in the cache
                     self.cache.set('idp', idp)
-                    # Retrieve and display the phishing URL
                     self.phishing_url = idp.get_phishing_url()
                     print(f"Phishing URL set: {self.phishing_url}")
                 else:
@@ -283,27 +174,25 @@ class Dispatcher:
             logging.error("Invalid arguments for configure command")
 
     def handle_target_set(self, token_key):
-        # Logic to set the target
-        if token_key in self.token_manager.cache:
-            cache.set('target', self.token_manager.cache.get(token_key))
+        # Check for the token in the general cache instead of the token manager's cache
+        general_tokens = self.token_manager.general_cache.get('tokens', {})
+        if token_key in general_tokens:
+            self.cache.set('target', general_tokens[token_key])
             logging.info(f"Target set to {token_key}")
         else:
             logging.error(f"Token {token_key} not found")
 
     def handle_target_list(self):
-        # Logic to list the current target
-        current_target = cache.get('target')
+        current_target = self.cache.get('target')
         if current_target:
             print(f"Current Target:\n{current_target}")
         else:
             print(f"No targets set.\nTo set a target use the following command: target set <token name>")
 
     def dispatch_target(self, cmd_args):
-        # Check if cmd_args has at least 1 element: subcommand
         if len(cmd_args) >= 1:
             sub = cmd_args[0]
 
-            # Implement the logic for different subcommands
             if sub == 'set':
                 if len(cmd_args) >= 2:
                     token_key = cmd_args[1]
