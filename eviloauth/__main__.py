@@ -2,12 +2,12 @@ import sys
 import logging
 import argparse
 import threading
-from dispatcher import Dispatcher
 from prompt_toolkit import PromptSession
 from werkzeug.serving import make_server
 from prompt_toolkit.completion import NestedCompleter
-from eviloauth import COMMANDS, app, cache, load_modules
 from eviloauth.idp import IDP
+from eviloauth.dispatcher import Dispatcher
+from eviloauth import COMMANDS, app, cache, load_modules
 from eviloauth.exceptions import EviloauthCommandException, EviloauthModuleException
 
 
