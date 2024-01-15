@@ -9,18 +9,18 @@ class GeneralToken:
     def __init__(self, **kwargs):
 
         self.kwargs = kwargs
-        access_token = kwargs.get('access_token')
-        refresh_token = kwargs.get('refresh_token')
+        self.access_token = kwargs.get('access_token')
+        self.refresh_token = kwargs.get('refresh_token')
 
-        if access_token:
-            self.access_token = AccessToken(access_token)
+        if self.access_token:
+            self.access_token = AccessToken(self.access_token)
             self.token_id = f'GT-{self.access_token}'
 
         else:
             raise EviloauthInvalidTokenException("Access token is required")
 
-        if refresh_token:
-            self.refresh_token = RefreshToken(refresh_token)
+        if self.refresh_token:
+            self.refresh_token = RefreshToken(self.refresh_token)
 
     def __str__(self):
         return f"{self.token_id}"
