@@ -3,12 +3,19 @@ from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
 def test_selenium_import():
-    driver = webdriver.Chrome()
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--ignore-certificate-errors')
+    driver = webdriver.Chrome(options=options)
+
     driver.get('http://www.example.com')
     assert driver.title == 'Example Domain'
 
@@ -25,7 +32,12 @@ def test_microsoft_login():
     upn = os.getenv('UPN')
     password = os.getenv('PASSWORD')
 
-    driver = webdriver.Chrome()
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--ignore-certificate-errors')
+    driver = webdriver.Chrome(options=options)
     wait = WebDriverWait(driver, 10)
 
     uri = f'https://www.office.com/login'
@@ -47,14 +59,3 @@ def test_microsoft_login():
     driver.implicitly_wait(2)
 
     assert driver.title == 'Home | Microsoft 365'
-
-
-if __name__ == '__main__':
-    import sys
-    if len(sys.argv) > 1:
-        if sys.argv[1] == 'test_selenium_import':
-            test_selenium_import()
-        elif sys.argv[1] == 'test_dotenv_load':
-            test_dotenv_load()
-        elif sys.argv[1] == 'test_microsoft_login':
-            test_microsoft_login()
