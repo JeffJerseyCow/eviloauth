@@ -14,7 +14,7 @@ class IDP():
     authz_endpoint = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
     token_endpoint = 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
 
-    def __init__(self, idp, redirect_server):
+    def __init__(self, idp, redirect_server, **kwargs):
 
         if idp not in self.idps:
             raise EviloauthCommandException(
@@ -22,15 +22,20 @@ class IDP():
 
         self.redirect_server = redirect_server
         self.idp = idp
+        self.client_id = kwargs.get('client_id')
+        self.scope = kwargs.get('scope')
+        self.final_destination = kwargs.get('final_destination')
         app.config['TOKEN_ENDPOINT'] = self.token_endpoint
         self.__idp_setup__()
 
     def __idp_setup__(self):
-        self.client_id = prompt('Client ID: ')
+        if not self.client_id or not self.scope or not self.final_destination:
+            self.client_id = prompt('Client ID: ')
+            self.scope = prompt('Scope: ')
+            self.final_destination = prompt('Final Destination: ')
+
         app.config['CLIENT_ID'] = self.client_id
-        self.scope = prompt('Scope: ')
         app.config['SCOPE'] = self.scope
-        self.final_destination = prompt('Final Destination: ')
         app.config['FINAL_DESTINATION'] = self.final_destination
 
         if self.idp == 'entra_implicit_flow':
@@ -46,9 +51,8 @@ class IDP():
                 'response_type': self.response_type,
                 'redirect_uri': f'https://{self.redirect_server}/redirect'
             }
-            uri = requests.Request(
+            self.uri = requests.Request(
                 'GET', self.authz_endpoint, params=params).prepare().url
-            logging.info(uri)
 
         elif self.idp == 'entra_code_flow':
             self.response_type = 'code'
@@ -76,9 +80,9 @@ class IDP():
                 'code_challenge': self.code_challenge,
                 'code_challenge_method': self.code_challenge_method
             }
-            uri = requests.Request(
+            self.uri = requests.Request(
                 'GET', self.authz_endpoint, params=params).prepare().url
-            logging.info(uri)
+            logging.info(self.uri)
 
     def __generate_state__(self):
         return ''.join([str(random.randint(0, 9)) for _ in range(5)])

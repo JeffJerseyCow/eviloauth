@@ -64,6 +64,7 @@ class Dispatcher:
         elif sub == 'configure':
             idp = IDP(arg, self.redirect_server)
             self.cache.set('idp', idp)
+            logging.info(f'{idp.uri}')
         else:
             raise EviloauthCommandException(
                 'Unknown "%s" command %s' % (cmd, sub))
