@@ -3,6 +3,7 @@ import requests
 import html2text
 from eviloauth.exceptions import EviloauthModuleException
 
+
 def print_normal(emails, email_count):
     count = 0
     for email in emails:
@@ -10,6 +11,7 @@ def print_normal(emails, email_count):
         if count > email_count and email_count != -1:
             break
         print(email)
+
 
 def print_html(emails, email_count):
     count = 0
@@ -31,15 +33,18 @@ def print_html(emails, email_count):
         print(f'Body: {body}')
         print('=========================================')
 
+
 def print_emails(emails, email_count, mode='html'):
     if mode == 'normal':
         print_normal(emails, email_count)
     elif mode == 'html':
         print_html(emails, email_count)
 
+
 def __load__():
     print('LOADED read_mail')
     pass
+
 
 def __run__(general_token):
     print('RUNNING read_mail')
@@ -47,7 +52,7 @@ def __run__(general_token):
     if not general_token:
         print("Error: No general token provided.")
         return
-    
+
     email_count = 10
 
     graph_url = 'https://graph.microsoft.com/v1.0/me/messages'
@@ -62,7 +67,8 @@ def __run__(general_token):
             graph_response = requests.get(graph_url, headers=graph_headers)
 
             if graph_response.status_code != 200:
-                print(f"Error fetching emails: {graph_response.status_code} - {graph_response.text}")
+                print(f"Error fetching emails: {
+                      graph_response.status_code} - {graph_response.text}")
                 break
 
             emails_resp = graph_response.json()

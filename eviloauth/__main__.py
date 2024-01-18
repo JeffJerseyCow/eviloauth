@@ -12,6 +12,7 @@ from eviloauth.idp import IDP
 from eviloauth.dispatcher import Dispatcher
 from eviloauth.exceptions import EviloauthCommandException, EviloauthModuleException
 
+
 def set_log_level(verbose):
     log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     if verbose == 0:
@@ -21,11 +22,15 @@ def set_log_level(verbose):
     elif verbose >= 2:
         logging.basicConfig(level=logging.DEBUG, format=log_format)
 
+
 def build_parser():
     parser = argparse.ArgumentParser(prog='eviloauth')
-    parser.add_argument('-v', '--verbose', action='count', default=0, help='Increase verbosity level')
-    parser.add_argument('-s', '--redirect_server', default='127.0.0.1:5000', help='URI of the redirect server')
-    return parser 
+    parser.add_argument('-v', '--verbose', action='count',
+                        default=0, help='Increase verbosity level')
+    parser.add_argument('-s', '--redirect_server',
+                        default='127.0.0.1:5000', help='URI of the redirect server')
+    return parser
+
 
 def main():
     parser = build_parser()
@@ -47,14 +52,16 @@ def main():
     session = PromptSession('eviloauth# ', completer=completer)
 
     module_dict = load_modules()
-    
-    dispatcher = Dispatcher(flask_server, module_dict, args.redirect_server, cache)
-    
+
+    dispatcher = Dispatcher(flask_server, module_dict,
+                            args.redirect_server, cache)
+
     try:
         while True:
             commands = session.prompt()
             try:
-                dispatcher.dispatch(commands)  # Use the same dispatcher instance
+                # Use the same dispatcher instance
+                dispatcher.dispatch(commands)
             except EviloauthCommandException as e:
                 logging.error('%s' % e)
 
@@ -68,6 +75,7 @@ def main():
         print('Exiting...')
         flask_server.shutdown()
         sys.exit()
+
 
 if __name__ == '__main__':
     main()

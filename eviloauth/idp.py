@@ -9,6 +9,7 @@ from . import get_idps, app
 from prompt_toolkit import prompt
 from .exceptions import EviloauthCommandException
 
+
 class IDP():
 
     idps = get_idps()
@@ -18,7 +19,8 @@ class IDP():
     def __init__(self, idp, redirect_server, **kwargs):
 
         if idp not in self.idps:
-            raise EviloauthCommandException(f'IDP {idp} is not supported. Supported IDPs: {self.idps}')
+            raise EviloauthCommandException(
+                f'IDP {idp} is not supported. Supported IDPs: {self.idps}')
 
         self.redirect_server = redirect_server
         self.idp = idp
@@ -59,7 +61,8 @@ class IDP():
             self.redirect_uri = f''
             self.state = self.__generate_state__()
             self.code_verifier = self.__generate_code_verifier__()
-            self.code_challenge = self.__generate_code_challenge__(self.code_verifier)
+            self.code_challenge = self.__generate_code_challenge__(
+                self.code_verifier)
             self.code_challenge_method = 'S256'
             app.config['TOKEN_ENDPOINT'] = self.token_endpoint
             app.config['REDIRECT_URI'] = self.redirect_uri
@@ -83,7 +86,8 @@ class IDP():
                 'code_challenge': self.code_challenge,
                 'code_challenge_method': self.code_challenge_method
             })
-        self.phishing_url = requests.Request('GET', self.authz_endpoint, params=params).prepare().url
+        self.phishing_url = requests.Request(
+            'GET', self.authz_endpoint, params=params).prepare().url
         logging.info(self.phishing_url)
 
     def get_phishing_url(self):
@@ -106,7 +110,8 @@ class IDP():
     def __generate_code_challenge__(self, code_verifier):
         code_verifier_encoded = code_verifier.encode()
         code_verifier_digest = hashlib.sha256(code_verifier_encoded).digest()
-        code_challenge = base64.urlsafe_b64encode(code_verifier_digest).decode().replace('=', '')
+        code_challenge = base64.urlsafe_b64encode(
+            code_verifier_digest).decode().replace('=', '')
         return code_challenge
 
     def __str__(self):
