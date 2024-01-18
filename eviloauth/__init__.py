@@ -25,6 +25,13 @@ COMMANDS = {
         'list': None,
         'set': None
     },
+    'help': {
+        'module': None,
+        'tokens': None,
+        'url': None,
+        'target': None,
+        'idp': None
+    },
     'exit': None
 }
 

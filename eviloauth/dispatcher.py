@@ -78,7 +78,6 @@ class Dispatcher:
         self.token_manager = TokenManager(temp_dir, cache)
         logging.debug(f'\tToken manager initialized with cache directory: {temp_dir}')
         
-    @classmethod
     def get_token_manager(cls):
         if cls.instance:
             return cls.instance.token_manager
@@ -313,19 +312,21 @@ class Dispatcher:
         else:
             logging.error("Missing arguments for idp configure command")
 
-    def dispatch_help(self, cmd_args):
-        if not cmd_args or len(cmd_args) == 0:
+    def dispatch_help(self, sub=None, *args):
+        if sub is None or not sub:
             self.display_general_help()
-        elif cmd_args[0] == 'modules':
+        elif sub == 'module':
             self.display_modules_help()
-        elif cmd_args[0] == 'tokens':
+        elif sub == 'tokens':
             self.display_tokens_help()
-        elif cmd_args[0] == 'configure':
-            self.display_configure_help()
-        elif cmd_args[0] == 'url':
+        elif sub == 'url':
             self.display_url_help()
+        elif sub == 'target':
+            self.display_target_help()  # Make sure this method is defined
+        elif sub == 'idp':
+            self.display_idp_help()     # Make sure this method is defined
         else:
-            print(f"No specific help available for '{cmd_args[0]}'")
+            print(f"No specific help available for '{sub}'")
 
     def display_general_help(self):
         help_text = """
@@ -333,13 +334,12 @@ class Dispatcher:
 
         Commands:
         - exit: Exits the application.
-        - modules: Manages different modules.
-        - tokens: Manages tokens.
-        - configure: Configures the Identity Provider.
-        - url: Displays the phishing URL.
-        - help: Displays help information.
-
-        For detailed help on specific commands, type 'help <command>'.
+        - module <module_name> <sub_module_name> [...args]: Executes a specified module with optional arguments.
+        - tokens <subcommand> [...args]: Manages OAuth tokens. Use 'tokens help' for more information.
+        - idp <subcommand> [...args]: Manages Identity Provider configurations. Use 'idp help' for more information.
+        - target <subcommand> [...args]: Manages the target token. Use 'target help' for more information.
+        - url: Displays the phishing URL, if set.
+        - help [<command>]: Displays help information for a specific command.
         """
         print(help_text)
 
@@ -347,10 +347,11 @@ class Dispatcher:
         help_text = """
         Modules Command Help:
 
-        Usage: modules <module_name> <sub_module_name> <sub_module_action>
+        Usage: module <module_name> <sub_module_name> [...args]
 
-        - Runs a specified module.
-        - Example: modules read_mail imap read
+        - Executes a specified module with the provided sub-module name and additional arguments.
+        - Requires a target to be set prior to running this command.
+        - Example: module azure read_mail
         """
         print(help_text)
 
@@ -358,31 +359,19 @@ class Dispatcher:
         help_text = """
         Tokens Command Help:
 
-        Usage: tokens <subcommand> [<args>]
+        Usage: tokens <subcommand> [...args]
 
         Subcommands:
         - list [<token_key>]: Lists all tokens or details of a specific token.
-        - set <token_key> <attribute> <value>: Updates attributes of a token.
+        - set <token_key> <attribute> <value>: Updates attributes of a specific token.
         - delete <token_key>: Deletes a specified token.
 
         Attributes for 'set' subcommand:
-        - upn: Updates the User Principal Name.
-        - scope: Updates the scope.
-        - expiry: Updates the expiry time in HHMM format.
+        - upn: User Principal Name.
+        - scope: OAuth scope.
+        - expiry: Expiry time (in HHMM format).
 
-        Example: tokens set OAT-example upn new-upn@example.com
-        """
-        print(help_text)
-
-    def display_configure_help(self):
-        help_text = """
-        Configure Command Help:
-
-        Usage: configure idp <idp_name>
-
-        - Configures the Identity Provider.
-        - Supported IDPs: entra_implicit_flow, entra_code_flow
-        - Example: configure idp entra_implicit_flow
+        Example: tokens set GT-OAT-example upn new-upn@example.com
         """
         print(help_text)
 
@@ -394,5 +383,33 @@ class Dispatcher:
 
         - Displays the phishing URL if set.
         - Requires running 'configure idp' command first.
+        """
+        print(help_text)
+
+    def display_target_help(self):
+        help_text = """
+        Target Command Help:
+
+        Usage: target <subcommand> [...args]
+
+        Subcommands:
+        - list: Lists the current target token.
+        - set <token_key>: Sets a token as the current target.
+
+        Example: target set GT-OAT-example
+        """
+        print(help_text)
+
+    def display_idp_help(self):
+        help_text = """
+        IDP Command Help:
+
+        Usage: idp <subcommand> [...args]
+
+        Subcommands:
+        - list: Lists the current Identity Provider configuration.
+        - configure <idp_name>: Configures the Identity Provider.
+
+        Example: idp configure entra_implicit_flow
         """
         print(help_text)

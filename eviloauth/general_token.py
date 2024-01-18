@@ -9,15 +9,12 @@ from datetime import datetime
 class GeneralToken:
     def __init__(self, **kwargs):
         self.kwargs = kwargs
-        self.access_token = kwargs.get('access_token')
+
+        self.access_token_str = kwargs.get('access_token')
         self.refresh_token = kwargs.get('refresh_token')
 
-        if self.access_token:
-            self.access_token = AccessToken(self.access_token)
-            self.token_id = f'GT-{self.access_token}'
-
-        if self.access_token:
-            self.access_token_obj = AccessToken(self.access_token)
+        if self.access_token_str:
+            self.access_token_obj = AccessToken(self.access_token_str)
             self.token_id = f'GT-{self.access_token_obj}'
         else:
             raise EviloauthInvalidTokenException("Access token is required")
