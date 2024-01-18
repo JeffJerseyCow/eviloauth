@@ -2,7 +2,7 @@ import sys
 import logging
 import argparse
 import threading
-from .dispatcher import Dispatcher
+from eviloauth.dispatcher import Dispatcher
 from prompt_toolkit import PromptSession
 from werkzeug.serving import make_server
 from prompt_toolkit.completion import NestedCompleter

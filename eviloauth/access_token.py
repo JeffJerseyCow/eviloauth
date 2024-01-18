@@ -1,6 +1,23 @@
 import jwt
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
+from enum import Enum
+
+class TokenType(Enum):
+    JAT = 1 
+    OAT = 2 
+    INVALID = 3
+
+class TokenStatus(Enum):
+    VALID = 1
+    EXPIRED = 2
+    NOT_APPLICABLE = 3
+
+class ExpiryStatus(Enum):
+    VALID = 1
+    EXPIRED = 2
+    NOT_APPLICABLE = 3
+
 class AccessToken:
     def __init__(self, raw_token):
         self.is_jwt = False
@@ -31,10 +48,13 @@ class AccessToken:
         if self.exp_datetime:
             remaining_time = self.exp_datetime - datetime.utcnow()
             if remaining_time.total_seconds() > 0:
-                return str(remaining_time).split('.')[0]  # Return as HH:MM:SS
+                hours, remainder = divmod(remaining_time.total_seconds(), 3600)
+                minutes, seconds = divmod(remainder, 60)
+                formatted_time = f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
+                return formatted_time
             else:
-                return "Expired"
-        return "N/A"
+                return ExpiryStatus.EXPIRED
+        return ExpiryStatus.NOT_APPLICABLE
     
     def set_scope(self, scope):
         self.scp = scope
@@ -42,13 +62,21 @@ class AccessToken:
     def set_expiry(self, expiry_datetime):
         self.exp_datetime = expiry_datetime
 
-    def __str__(self):
+    def get_token_type(self):
         if self.is_jwt:
+            return TokenType.JAT
+        elif self.token_id:
+            return TokenType.OAT
+        return TokenType.INVALID
 
-            return f'JWT-{self.upn}'
-        
+    def __str__(self):
+        token_type = self.get_token_type()
+        if token_type == TokenType.JAT:
+            return f'{TokenType.JAT.name}-{self.upn}'
+        elif token_type == TokenType.OAT:
+            return f'{TokenType.OAT.name}-{self.token_id}'
         else:
-            return f'OAT-{self.token_id}'
+            return TokenType.INVALID.name
 
     def __repr__(self):
         return self.__str__()
