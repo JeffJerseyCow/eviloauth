@@ -6,8 +6,10 @@ from eviloauth.dispatcher import Dispatcher
 from prompt_toolkit import PromptSession
 from werkzeug.serving import make_server
 from prompt_toolkit.completion import NestedCompleter
+import eviloauth.routes
 from eviloauth import COMMANDS, app, cache, load_modules
 from eviloauth.idp import IDP
+from eviloauth.dispatcher import Dispatcher
 from eviloauth.exceptions import EviloauthCommandException, EviloauthModuleException
 
 def set_log_level(verbose):
@@ -33,6 +35,7 @@ def main():
     logging.info(f'Redirect Server: {args.redirect_server}')
 
     from . import routes
+
     server, port = (args.redirect_server.split(':') + [None, None])[:2]
     port = 443 if port is None else int(port)
     # TODO: Permit non-self-signed certificates

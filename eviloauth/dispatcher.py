@@ -213,8 +213,10 @@ class Dispatcher:
         if idp_arg in ['entra_implicit_flow', 'entra_code_flow']:
             idp = IDP(idp_arg, self.redirect_server)
             self.cache.set('idp', idp)
+
             self.phishing_url = idp.get_phishing_url()
             print(f"Phishing URL set: {self.phishing_url}")
+            logging.info(f'{idp.uri}')
         else:
             logging.error(f"IDP {idp_arg} is not supported. Supported IDPs: ['entra_implicit_flow', 'entra_code_flow']")
                 

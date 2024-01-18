@@ -10,24 +10,32 @@ from prompt_toolkit import prompt
 from .exceptions import EviloauthCommandException
 
 class IDP():
-    def __init__(self, idp, redirect_server):
-        self.idps = get_idps()
+
+    idps = get_idps()
+    authz_endpoint = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
+    token_endpoint = 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
+
+    def __init__(self, idp, redirect_server, **kwargs):
+
         if idp not in self.idps:
             raise EviloauthCommandException(f'IDP {idp} is not supported. Supported IDPs: {self.idps}')
 
         self.redirect_server = redirect_server
         self.idp = idp
-        self.authz_endpoint = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
-        self.token_endpoint = 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
+        self.client_id = kwargs.get('client_id')
+        self.scope = kwargs.get('scope')
+        self.final_destination = kwargs.get('final_destination')
         app.config['TOKEN_ENDPOINT'] = self.token_endpoint
         self.__idp_setup__()
 
     def __idp_setup__(self):
-        self.client_id = prompt('Client ID: ')
+        if not self.client_id or not self.scope or not self.final_destination:
+            self.client_id = prompt('Client ID: ')
+            self.scope = prompt('Scope: ')
+            self.final_destination = prompt('Final Destination: ')
+
         app.config['CLIENT_ID'] = self.client_id
-        self.scope = prompt('Scope: ')
         app.config['SCOPE'] = self.scope
-        self.final_destination = prompt('Final Destination: ')
         app.config['FINAL_DESTINATION'] = self.final_destination
 
         if self.idp == 'entra_implicit_flow':
@@ -36,6 +44,15 @@ class IDP():
             app.config['REDIRECT_URI'] = self.redirect_uri
             app.config['RESPONSE_TYPE'] = self.response_type
             self.__build_url__()
+
+            params = {
+                'client_id': self.client_id,
+                'scope': self.scope,
+                'response_type': self.response_type,
+                'redirect_uri': f'https://{self.redirect_server}/redirect'
+            }
+            self.uri = requests.Request(
+                'GET', self.authz_endpoint, params=params).prepare().url
 
         elif self.idp == 'entra_code_flow':
             self.response_type = 'code'
