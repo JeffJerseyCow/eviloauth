@@ -33,9 +33,7 @@ class GeneralToken:
             'upn': self.access_token_obj.upn if self.access_token_obj.is_jwt else 'N/A',
             'scp': self.access_token_obj.scp if self.access_token_obj.scp else 'N/A',
             'expiry': self.access_token_obj.get_time_until_expiry() if self.access_token_obj.exp_datetime else 'N/A',
-            'issued_at': f"{
-                self.access_token_obj.today} at {
-                self.access_token_obj.time}" if self.access_token_obj.today else 'N/A',
+            'issued_at': f"{self.access_token_obj.today} at {self.access_token_obj.time}" if self.access_token_obj.today else 'N/A',
             'raw_token': self.access_token_obj.raw_token if self.access_token_obj.raw_token else 'N/A'}
         return details
 
@@ -55,8 +53,7 @@ class GeneralToken:
             }
 
             logging.info('Refreshing access token')
-            response = requests.post(self.kwargs.get(
-                'token_endpoint'), headers=headers, data=data)
+            response = requests.post(self.kwargs.get('token_endpoint'), headers=headers, data=data)
 
             token_type = response.json()["token_type"]
             scope = response.json()["scope"]

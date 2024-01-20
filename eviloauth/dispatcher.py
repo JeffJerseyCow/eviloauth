@@ -86,8 +86,7 @@ class Dispatcher:
         self.redirect_server = redirect_server
         self.cache = cache
         self.token_manager = TokenManager(temp_dir, cache)
-        logging.debug(
-            f'\tToken manager initialized with cache directory: {temp_dir}')
+        logging.debug(f'\tToken manager initialized with cache directory: {temp_dir}')
 
     def get_token_manager(cls):
         if cls.instance:
@@ -133,8 +132,7 @@ class Dispatcher:
                       f'{sub_module_name}, {module_args}')
         if module_name and sub_module_name:
             try:
-                full_module_name = f'eviloauth.module.{
-                    module_name}.{sub_module_name}'
+                full_module_name = f'eviloauth.module.{module_name}.{sub_module_name}'
                 if full_module_name in self.module_dict:
                     mod = self.module_dict[full_module_name]
                     target_info = self.cache.get('target', {})
@@ -143,10 +141,8 @@ class Dispatcher:
                         raw_token_str = target_info['raw_token']
                         mod.__run__(raw_token_str)
                     else:
-                        logging.error(
-                            "No target token key set or raw token string is missing")
-                        print(
-                            "No target token key set or raw token string is missing")
+                        logging.error("No target token key set or raw token string is missing")
+                        print("No target token key set or raw token string is missing")
                 else:
                     logging.error(f"Module {full_module_name} not found")
                     print(f"Module {full_module_name} not found")
@@ -162,23 +158,20 @@ class Dispatcher:
                 azure_action = AzureAttack(sub_module_name.lower())
                 return f'eviloauth.module.azure.{azure_action.value}'
             except ValueError:
-                raise EviloauthCommandException(
-                    f'Unknown Azure action {sub_module_name}')
+                raise EviloauthCommandException(f'Unknown Azure action {sub_module_name}')
 
     def dispatch_tokens(self, subcmd, *cmd_args):
         try:
             token_command = TokenSubCommand(subcmd.lower())
         except ValueError:
-            raise EviloauthCommandException(
-                f'Unknown tokens subcommand {subcmd}')
+            raise EviloauthCommandException(f'Unknown tokens subcommand {subcmd}')
 
         if token_command == TokenSubCommand.LIST:
             self.handle_tokens_list(*cmd_args)
         elif token_command == TokenSubCommand.DELETE:
             self.handle_tokens_delete(*cmd_args)
         else:
-            raise EviloauthCommandException(
-                f'Unhandled tokens subcommand: {subcmd}')
+            raise EviloauthCommandException(f'Unhandled tokens subcommand: {subcmd}')
 
     def handle_tokens_list(self, *cmd_args):
         logging.debug(f'Handling tokens list command with args: {cmd_args}')
@@ -187,8 +180,7 @@ class Dispatcher:
             logging.info(f"Fetching token details for key: {token_key}")
 
             general_tokens = self.token_manager.cache.get('tokens', {})
-            logging.info(f"Current tokens in cache: "
-                         f"{list(general_tokens.keys())}")
+            logging.info(f"Current tokens in cache: {list(general_tokens.keys())}")
 
             if token_key in general_tokens:
                 token_obj = general_tokens[token_key]
@@ -198,8 +190,7 @@ class Dispatcher:
                     for detail, value in token_details.items():
                         print(f"  {detail.capitalize()}: {value}")
                 else:
-                    logging.warning(
-                        f"No token object found for key: {token_key}")
+                    logging.warning(f"No token object found for key: {token_key}")
                     print(f"No token found for key: {token_key}")
             else:
                 logging.warning(f"Token key {token_key} not found in cache")
@@ -239,8 +230,7 @@ class Dispatcher:
             print(f"Phishing URL set: {self.phishing_url}")
             logging.info(f'{idp.uri}')
         else:
-            logging.error(f"IDP {
-                          idp_arg} is not supported. Supported IDPs: ['entra_implicit_flow', 'entra_code_flow']")
+            logging.error(f"IDP {idp_arg} is not supported. Supported IDPs: ['entra_implicit_flow', 'entra_code_flow']")
 
     def handle_target_set(self, token_key):
         general_tokens = self.token_manager.cache.get('tokens', {})
@@ -250,9 +240,7 @@ class Dispatcher:
             raw_token_str = general_token.get_token_details().get('raw_token')
 
             if raw_token_str:
-                self.cache.set(
-                    'target', {
-                        'token_key': token_key, 'raw_token': raw_token_str})
+                self.cache.set('target', {'token_key': token_key, 'raw_token': raw_token_str})
                 logging.info(f"Target set with raw token for {token_key}")
                 print(f"Target set with raw token for {token_key}")
             else:
@@ -265,11 +253,9 @@ class Dispatcher:
     def handle_target_list(self):
         current_target = self.cache.get('target')
         if current_target:
-            print(f"Current Target Token Key: {
-                  current_target.get('token_key')}")
+            print(f"Current Target Token Key: {current_target.get('token_key')}")
         else:
-            print(
-                "No targets set.\nTo set a target use the following command: target set <token name>")
+            print(f"No targets set.\nTo set a target use the following command: target set <token name>")
 
     def dispatch_target(self, sub, *args):
         logging.debug(f'Dispatching target command: {sub}, {args}')
@@ -277,8 +263,7 @@ class Dispatcher:
             try:
                 target_command = TargetSubCommand(sub.lower())
             except ValueError:
-                raise EviloauthCommandException(
-                    f'Unknown target subcommand {sub}')
+                raise EviloauthCommandException(f'Unknown target subcommand {sub}')
 
             if target_command == TargetSubCommand.SET:
                 if args and args[0]:
@@ -288,8 +273,7 @@ class Dispatcher:
             elif target_command == TargetSubCommand.LIST:
                 self.handle_target_list()
             else:
-                raise EviloauthCommandException(
-                    f'Unhandled target subcommand: {sub}')
+                raise EviloauthCommandException(f'Unhandled target subcommand: {sub}')
         else:
             logging.error("Invalid arguments for target command")
 
@@ -297,7 +281,7 @@ class Dispatcher:
         if self.phishing_url:
             print(f"Phishing URL:\n{self.phishing_url}")
         else:
-            print("Phishing URL not set. Please run 'configure idp' first.")
+            print(f"Phishing URL not set. Please run 'configure idp' first.")
 
     def dispatch_idp(self, sub, *args):
         logging.debug(f'Dispatching idp command: {sub}, {args}')
@@ -305,16 +289,14 @@ class Dispatcher:
             try:
                 idp_command = IDPSubCommand(sub.lower())
             except ValueError:
-                raise EviloauthCommandException(
-                    f'Unknown idp subcommand {sub}')
+                raise EviloauthCommandException(f'Unknown idp subcommand {sub}')
 
             if idp_command == IDPSubCommand.LIST:
                 self.handle_idp_list()
             elif idp_command == IDPSubCommand.CONFIGURE and args:
                 self.handle_idp_configure(*args)
             else:
-                raise EviloauthCommandException(
-                    f'Unhandled idp subcommand: {sub}')
+                raise EviloauthCommandException(f'Unhandled idp subcommand: {sub}')
         else:
             logging.error("Invalid idp command arguments")
 
@@ -334,8 +316,7 @@ class Dispatcher:
                 the_phishing_url = idp.get_phishing_url()
                 print(f"Phishing URL set: {the_phishing_url}")
             else:
-                logging.error(f"IDP {
-                              idp_arg} is not supported. Supported IDPs: ['entra_implicit_flow', 'entra_code_flow']")
+                logging.error(f"IDP {idp_arg} is not supported. Supported IDPs: ['entra_implicit_flow', 'entra_code_flow']")
         else:
             logging.error("Missing arguments for idp configure command")
 

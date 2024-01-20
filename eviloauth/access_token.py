@@ -35,8 +35,7 @@ class AccessToken:
         self.today = datetime.today().strftime('%d-%m-%Y')
 
         try:
-            self.token = jwt.decode(
-                raw_token, options={'verify_signature': False})
+            self.token = jwt.decode(raw_token, options={'verify_signature': False})
             self.is_jwt = True
             self.upn = self.token.get('upn')
             self.scp = self.token.get('scp')
@@ -55,8 +54,7 @@ class AccessToken:
             if remaining_time.total_seconds() > 0:
                 hours, remainder = divmod(remaining_time.total_seconds(), 3600)
                 minutes, seconds = divmod(remainder, 60)
-                formatted_time = f"{int(hours):02d}:{int(minutes):02d}:{
-                    int(seconds):02d}"
+                formatted_time = f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
                 return formatted_time
             else:
                 return ExpiryStatus.EXPIRED

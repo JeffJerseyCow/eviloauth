@@ -80,8 +80,7 @@ class IDP():
                 'code_challenge': self.code_challenge,
                 'code_challenge_method': self.code_challenge_method
             }
-            self.uri = requests.Request(
-                'GET', self.authz_endpoint, params=params).prepare().url
+            self.uri = requests.Request('GET', self.authz_endpoint, params=params).prepare().url
             logging.info(self.uri)
 
     def get_phishing_url(self):
