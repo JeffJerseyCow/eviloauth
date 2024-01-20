@@ -28,8 +28,12 @@ def test_entra_implicit_flow():
 
     flask_server = start_flask()
 
-    idp = IDP('entra_implicit_flow', '127.0.0.1:5000', client_id='77248f8f-96e8-436e-9dfa-8f8ed6e32add',
-              scope='mail.read', final_destination='https://outlook.live.com/')
+    idp = IDP(
+        'entra_implicit_flow',
+        '127.0.0.1:5000',
+        client_id='77248f8f-96e8-436e-9dfa-8f8ed6e32add',
+        scope='mail.read',
+        final_destination='https://outlook.live.com/')
 
     options = Options()
     options.add_argument('--headless')
@@ -60,7 +64,7 @@ def test_entra_implicit_flow():
     flask_server.shutdown()
 
     general_token = next(iter(cache.get('tokens').items()))[1]
-    assert str(general_token.get_access_token())[0:5] == 'AT-O-'
+    assert str(general_token.get_access_token())[0:4] == 'OAT-'
 
 
 def test_entra_code_flow():
@@ -70,8 +74,12 @@ def test_entra_code_flow():
 
     flask_server = start_flask()
 
-    idp = IDP('entra_code_flow', '127.0.0.1:5000', client_id='77248f8f-96e8-436e-9dfa-8f8ed6e32add',
-              scope='mail.read', final_destination='https://outlook.live.com/')
+    idp = IDP(
+        'entra_code_flow',
+        '127.0.0.1:5000',
+        client_id='77248f8f-96e8-436e-9dfa-8f8ed6e32add',
+        scope='mail.read',
+        final_destination='https://outlook.live.com/')
 
     options = Options()
     options.add_argument('--headless')
@@ -102,4 +110,4 @@ def test_entra_code_flow():
     flask_server.shutdown()
 
     general_token = next(iter(cache.get('tokens').items()))[1]
-    assert str(general_token.get_access_token())[0:5] == 'AT-O-'
+    assert str(general_token.get_access_token())[0:4] == 'OAT-'

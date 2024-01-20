@@ -1,5 +1,9 @@
 import logging
 import requests
+from . import app, cache
+from .dispatcher import Dispatcher
+from .access_token import AccessToken
+from .refresh_token import RefreshToken
 from eviloauth import app, cache
 from eviloauth.general_token import GeneralToken
 from flask import jsonify, render_template, request, redirect as flask_redirect
@@ -12,29 +16,31 @@ def home():
 
 @app.route('/callback', methods=['POST'])
 def callback():
-    access_token = request.json.get('access_token')  # type: ignore
-
-    if access_token:
+    token_data = request.json.get('access_token')
+    if token_data:
         try:
-            general_token = GeneralToken(access_token=access_token)
-            general_tokens = cache.get('tokens')
+            general_token = GeneralToken(access_token=token_data)
+            general_tokens = cache.get('tokens', {})
             general_tokens.update({str(general_token): general_token})
             cache.set('tokens', general_tokens)
-
-            logging.info("Access Token: %s", access_token)
-            return jsonify({'status': 'success', 'message': 'Token received', 'data': str(access_token)})
-        except ValueError as e:
-            logging.error('Cannot process_token %s', e)
+            return jsonify({'status': 'success',
+                            'message': 'Token received',
+                            'data': str(general_token)})
+        except Exception as e:
+            logging.error('Error processing token: %s', e)
             return jsonify({'status': 'error', 'message': str(e)}), 400
     else:
-        logging.error('Callback didn\'t receive access_token')
-        return jsonify({'status': 'error', 'message': 'No token provided'}), 400
+        logging.error('Callback did not receive access_token')
+        return jsonify(
+            {'status': 'error', 'message': 'No token provided'}), 400
 
 
 @app.route(f'/redirect', methods=['GET'])
 def redirect():
     final_destination = app.config.get('FINAL_DESTINATION')
-    return render_template('redirect.html', final_destination=final_destination)
+    return render_template(
+        'redirect.html',
+        final_destination=final_destination)
 
 
 @app.route(f'/hook', methods=['GET'])

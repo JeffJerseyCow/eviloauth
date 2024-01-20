@@ -2,6 +2,7 @@ import sys
 import logging
 import argparse
 import threading
+from eviloauth.dispatcher import Dispatcher
 from prompt_toolkit import PromptSession
 from werkzeug.serving import make_server
 from prompt_toolkit.completion import NestedCompleter
@@ -14,7 +15,6 @@ from eviloauth.exceptions import EviloauthCommandException, EviloauthModuleExcep
 
 def set_log_level(verbose):
     log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-
     if verbose == 0:
         logging.basicConfig(level=logging.WARNING, format=log_format)
     elif verbose == 1:
@@ -24,11 +24,14 @@ def set_log_level(verbose):
 
 
 def build_parser():
-    parser = argparse.ArgumentParser(prog=f'eviloauth')
+    parser = argparse.ArgumentParser(prog='eviloauth')
     parser.add_argument('-v', '--verbose', action='count',
                         default=0, help='Increase verbosity level')
-    parser.add_argument('-s', '--redirect_server',
-                        default='127.0.0.1:5000', help='URI of the redirect server')
+    parser.add_argument(
+        '-s',
+        '--redirect_server',
+        default='127.0.0.1:5000',
+        help='URI of the redirect server')
     return parser
 
 
@@ -39,7 +42,8 @@ def main():
 
     logging.info(f'Redirect Server: {args.redirect_server}')
 
-    # Build flask application
+    from . import routes
+
     server, port = (args.redirect_server.split(':') + [None, None])[:2]
     port = 443 if port is None else int(port)
     # TODO: Permit non-self-signed certificates
@@ -47,36 +51,29 @@ def main():
     t = threading.Thread(target=flask_server.serve_forever)
     t.start()
 
-    # Build prompt
     completer = NestedCompleter.from_nested_dict(COMMANDS)
     session = PromptSession('eviloauth# ', completer=completer)
 
-    # Load modules
     module_dict = load_modules()
 
-    # Main process loop
-    try:
+    dispatcher = Dispatcher(flask_server, module_dict,
+                            args.redirect_server, cache)
 
+    try:
         while True:
             commands = session.prompt()
-
             try:
-                dispatcher = Dispatcher(
-                    flask_server, module_dict, cache, args.redirect_server)
+                # Use the same dispatcher instance
                 dispatcher.dispatch(commands)
-
-            # Inner except
             except EviloauthCommandException as e:
                 logging.error('%s' % e)
 
             except EviloauthModuleException as e:
                 logging.error('%s' % e)
 
-            # Raise when module is not found
             except KeyError as e:
                 logging.warning('Unknown module %s' % e)
 
-    # Outer except
     except KeyboardInterrupt:
         print('Exiting...')
         flask_server.shutdown()
