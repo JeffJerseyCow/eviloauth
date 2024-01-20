@@ -17,7 +17,8 @@ COMMANDS = {
     'module': MODULES,
     'tokens': {
         'list': None,
-        'set': None,  # Adding the 'set' subcommand for tokens
+        'delete': None,
+        'set': None,
         # TODO: create add token wizard
         'add': None
     },

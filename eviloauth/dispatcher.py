@@ -62,8 +62,10 @@ class TokenManager:
             return token_key
 
     def delete(self, token_key):
-        if token_key in self.cache:
-            self.cache.delete(token_key)
+        general_tokens = self.general_cache.get('tokens', {})
+        if token_key in general_tokens:
+            del general_tokens[token_key]
+            self.general_cache.set('tokens', general_tokens)
             return True
         return False
 
@@ -127,8 +129,8 @@ class Dispatcher:
         sys.exit()
 
     def dispatch_module(self, module_name, sub_module_name, *module_args):
-        logging.debug(f'Dispatching module command: {module_name}, {
-                      sub_module_name}, {module_args}')
+        logging.debug(f'Dispatching module command: {module_name}, '
+                      f'{sub_module_name}, {module_args}')
         if module_name and sub_module_name:
             try:
                 full_module_name = f'eviloauth.module.{
@@ -185,8 +187,8 @@ class Dispatcher:
             logging.info(f"Fetching token details for key: {token_key}")
 
             general_tokens = self.token_manager.cache.get('tokens', {})
-            logging.info(f"Current tokens in cache: {
-                         list(general_tokens.keys())}")
+            logging.info(f"Current tokens in cache: "
+                         f"{list(general_tokens.keys())}")
 
             if token_key in general_tokens:
                 token_obj = general_tokens[token_key]
@@ -209,13 +211,17 @@ class Dispatcher:
             else:
                 print("No tokens available.")
 
-    def handle_tokens_delete(self, cmd_args):
-        if len(cmd_args) == 2 and cmd_args[0] == 'delete':
-            token_key = cmd_args[1]
-            if self.token_manager.delete(token_key):
-                print(f"Token {token_key} deleted successfully.")
-            else:
-                print(f"Token {token_key} not found or could not be deleted.")
+    def handle_tokens_delete(self, *cmd_args):
+        if not cmd_args:
+            logging.error("Token key not provided for delete operation")
+            print("Usage: tokens delete <token_key>")
+            return
+
+        token_key = cmd_args[0]
+        if self.token_manager.delete(token_key):
+            print(f"Token {token_key} deleted successfully.")
+        else:
+            print(f"Token {token_key} not found or could not be deleted.")
 
     def dispatch_configure(self, sub, *args):
         logging.debug(f'Dispatching configure command: {sub}, {args}')

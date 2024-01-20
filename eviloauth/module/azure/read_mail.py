@@ -67,8 +67,8 @@ def __run__(general_token):
             graph_response = requests.get(graph_url, headers=graph_headers)
 
             if graph_response.status_code != 200:
-                print(f"Error fetching emails: {
-                      graph_response.status_code} - {graph_response.text}")
+                print(f"Error fetching emails: "
+                      f"{graph_response.status_code} - {graph_response.text}")
                 break
 
             emails_resp = graph_response.json()
