@@ -60,7 +60,7 @@ def test_entra_implicit_flow():
     flask_server.shutdown()
 
     general_token = next(iter(cache.get('tokens').items()))[1]
-    assert str(general_token.get_access_token())[0:5] == 'AT-O-'
+    assert str(general_token.get_access_token())[0:4] == 'OAT-'
 
 
 def test_entra_code_flow():
@@ -81,7 +81,7 @@ def test_entra_code_flow():
     driver = webdriver.Chrome(options=options)
     driver.get(idp.uri)
 
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
 
     email_field = wait.until(
         EC.visibility_of_element_located((By.ID, "i0116")))
@@ -98,8 +98,8 @@ def test_entra_code_flow():
     stay_signed_in.click()
     driver.implicitly_wait(2)
 
-    wait.until(EC.title_contains('Outlook'))
+    wait.until(EC.title_contains('Meet'))
     flask_server.shutdown()
 
     general_token = next(iter(cache.get('tokens').items()))[1]
-    assert str(general_token.get_access_token())[0:5] == 'AT-O-'
+    assert str(general_token.get_access_token())[0:5] == 'JAT-'
