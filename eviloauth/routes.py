@@ -23,29 +23,31 @@ def callback():
             general_tokens = cache.get('tokens', {})
             general_tokens.update({str(general_token): general_token})
             cache.set('tokens', general_tokens)
-            return jsonify({'status': 'success', 'message': 'Token received', 'data': str(general_token)})
+            return jsonify({'status': 'success',
+                            'message': 'Token received',
+                            'data': str(general_token)})
         except Exception as e:
             logging.error('Error processing token: %s', e)
             return jsonify({'status': 'error', 'message': str(e)}), 400
     else:
         logging.error('Callback did not receive access_token')
-        return jsonify({'status': 'error', 'message': 'No token provided'}), 400
+        return jsonify(
+            {'status': 'error', 'message': 'No token provided'}), 400
 
 
 @app.route(f'/redirect', methods=['GET'])
 def redirect():
     final_destination = app.config.get('FINAL_DESTINATION')
-    return render_template('redirect.html', final_destination=final_destination)
+    return render_template(
+        'redirect.html',
+        final_destination=final_destination)
 
 
 @app.route(f'/hook', methods=['GET'])
 def hook():
-    access_token = request.json.get('access_token')
-    token_manager = Dispatcher.get_token_manager()
     code = request.args.get('code')
     state = request.args.get('state')
     session_state = request.args.get('session_state')
-    token_key = token_manager.add(access_token)
 
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',

@@ -33,13 +33,14 @@ class GeneralToken:
             'upn': self.access_token_obj.upn if self.access_token_obj.is_jwt else 'N/A',
             'scp': self.access_token_obj.scp if self.access_token_obj.scp else 'N/A',
             'expiry': self.access_token_obj.get_time_until_expiry() if self.access_token_obj.exp_datetime else 'N/A',
-            'issued_at': f"{self.access_token_obj.today} at {self.access_token_obj.time}" if self.access_token_obj.today else 'N/A',
-            'raw_token': self.access_token_obj.raw_token if self.access_token_obj.raw_token else 'N/A'
-        }
+            'issued_at': f"{
+                self.access_token_obj.today} at {
+                self.access_token_obj.time}" if self.access_token_obj.today else 'N/A',
+            'raw_token': self.access_token_obj.raw_token if self.access_token_obj.raw_token else 'N/A'}
         return details
 
     def get_access_token(self):
-        # TODO: FIX FOR TAGKING REFRESH TOKEN
+        # TODO: FIX FOR TAKING REFRESH TOKEN
         if self.refresh_token:
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

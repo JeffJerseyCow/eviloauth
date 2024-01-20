@@ -245,7 +245,8 @@ class Dispatcher:
 
             if raw_token_str:
                 self.cache.set(
-                    'target', {'token_key': token_key, 'raw_token': raw_token_str})
+                    'target', {
+                        'token_key': token_key, 'raw_token': raw_token_str})
                 logging.info(f"Target set with raw token for {token_key}")
                 print(f"Target set with raw token for {token_key}")
             else:

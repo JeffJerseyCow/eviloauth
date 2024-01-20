@@ -81,7 +81,8 @@ def __run__(general_token):
                 print("No more emails to fetch.")
                 break
 
-            if not emails_next_link or (email_count != -1 and len(emails) >= email_count):
+            if not emails_next_link or (
+                    email_count != -1 and len(emails) >= email_count):
                 break
 
             graph_url = emails_next_link

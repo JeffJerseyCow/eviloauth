@@ -27,8 +27,11 @@ def build_parser():
     parser = argparse.ArgumentParser(prog='eviloauth')
     parser.add_argument('-v', '--verbose', action='count',
                         default=0, help='Increase verbosity level')
-    parser.add_argument('-s', '--redirect_server',
-                        default='127.0.0.1:5000', help='URI of the redirect server')
+    parser.add_argument(
+        '-s',
+        '--redirect_server',
+        default='127.0.0.1:5000',
+        help='URI of the redirect server')
     return parser
 
 

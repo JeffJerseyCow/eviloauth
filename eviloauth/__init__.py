@@ -50,7 +50,8 @@ def get_idps():
 
 def load_modules():
     module_dict = {}
-    for module in [f'eviloauth.module.{k}.{i}' for (k, v) in COMMANDS['module'].items() for i in v]:
+    for module in [f'eviloauth.module.{k}.{i}' for (
+            k, v) in COMMANDS['module'].items() for i in v]:
         module_dict[module] = importlib.import_module(module)
         module_dict[module].__load__()
     return module_dict
